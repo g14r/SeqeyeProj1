@@ -5538,7 +5538,6 @@ switch what
         
         N3 = input('look into Chunked/Random/All sequences? (c/r/a)'  , 's');
         
-        
         N4 = input('Use normalized IPIs? (Y/N)'  , 's');
         if calc
             for subjnum = 1:length(subj_name)-1
@@ -6350,8 +6349,8 @@ switch what
         %% bin the probabilities into 5 classes of probability and test the effect of probability on IPIs in chunked sequences
         C.t2Rank_n_binned = C.t2Rank_n;
         rr = 1;
-        for j = 0:5:25
-            C.t2Rank_n_binned(C.t2Rank_n_binned>=j & C.t2Rank_n_binned<j+5) = rr;
+        for j = 0:6:25
+            C.t2Rank_n_binned(C.t2Rank_n_binned>=j & C.t2Rank_n_binned<j+6) = rr;
             rr = rr+1;
         end
         R.t2Rank_n_binned = R.t2Rank_n;
@@ -6363,27 +6362,27 @@ switch what
         
         C.T3Rank_n_binned = C.T3Rank_n(:,1);
         rr = 1;
-        for j = 0:20:125
-            C.T3Rank_n_binned(C.T3Rank_n_binned>=j & C.T3Rank_n_binned<j+20) = rr;
+        for j = 0:25:125
+            C.T3Rank_n_binned(C.T3Rank_n_binned>=j & C.T3Rank_n_binned<j+25) = rr;
             rr = rr+1;
         end
         R.T3Rank_n_binned = R.T3Rank_n(:,1);
         rr = 1;
-        for j = 0:25:125
-            R.T3Rank_n_binned(R.T3Rank_n_binned>=j & R.T3Rank_n_binned<j+25) = rr;
+        for j = 0:30:125
+            R.T3Rank_n_binned(R.T3Rank_n_binned>=j & R.T3Rank_n_binned<j+30) = rr;
             rr = rr+1;
         end
         
         C.T4Rank_n_binned = C.T4Rank_n(:,1);
         rr = 1;
-        for j = 0:60:625
-            C.T4Rank_n_binned(C.T4Rank_n_binned>=j & C.T4Rank_n_binned<j+60) = rr;
+        for j = 0:110:625
+            C.T4Rank_n_binned(C.T4Rank_n_binned>=j & C.T4Rank_n_binned<j+110) = rr;
             rr = rr+1;
         end
         R.T4Rank_n_binned = R.T4Rank_n(:,1);
         rr = 1;
-        for j = 0:80:625
-            R.T4Rank_n_binned(R.T4Rank_n_binned>=j & R.T4Rank_n_binned<j+80) = rr;
+        for j = 0:150:625
+            R.T4Rank_n_binned(R.T4Rank_n_binned>=j & R.T4Rank_n_binned<j+150) = rr;
             rr = rr+1;
         end
         % map the block to less / half per day / so bin every 4 blocks to 1
@@ -6591,91 +6590,98 @@ switch what
                 M = All;
                 titleSuffix = 'All Sequences';
         end
-        for sn = 1:length(subj_name) - 1
-            clear T TSS RSS0 RSS1 FSS1 FSS0 L X X1 X2 X3 X4 X5 X6
-            T = getrow(M , ismember(M.SN , sn) & ismember(M.Day , [2:4]));
-            
-            
-            L = length(T.IPI);
-            X1 = ones(L , 1); % intercept
-            X2 = T.IPIarrangement;
-            %             X2 = T.estIPIarrangement;
-            
-            X2(X2==1) = -1; % between
-            X2(X2==0) = -1; % Random = between
-            X2(X2==2) = 1;  % within
-            
-            
-            
-            switch norm
-                case 1
-                    X3 = T.t2Rank_n_binned;
-                    switch LastIPI
-                        case 1
-                            %                                 X4 = T.t3Prob_n(:,1);
-                            %                                 X5 = T.t4Prob_n(:,1);
-                            X4 = T.T3Rank_n_binned;
-                            X5 = T.T4Rank_n_binned;
-                        otherwise
-                            X4 = mean(T.t3Prob_n , 2);
-                            X5 = mean(T.t4Prob_n , 2);
-                    end
-                case 0
-                    X3 = T.t2Prob;
-                    switch LastIPI
-                        case 1
-                            X4 = T.t3Prob(:,1);
-                            X5 = T.t4Prob(:,1);
-                        otherwise
-                            X4 = mean(T.t3Prob , 2);
-                            X5 = mean(T.t4Prob , 2);
-                    end
+        for dd = 2:4
+            for sn = 1:length(subj_name) - 1
+                clear T TSS RSS0 RSS1 FSS1 FSS0 L X X1 X2 X3 X4 X5 X6
+                T = getrow(M , ismember(M.SN , sn) & ismember(M.Day , dd));
+                
+                
+                L = length(T.IPI);
+                X1 = ones(L , 1); % intercept
+                X2 = T.IPIarrangement;
+                %             X2 = T.estIPIarrangement;
+                
+                X2(X2==1) = -1; % between
+                X2(X2==0) = -1; % Random = between
+                X2(X2==2) = 1;  % within
+                
+                
+                
+                switch norm
+                    case 1
+                        X3 = T.t2Rank_n_binned;
+                        switch LastIPI
+                            case 1
+                                %                                 X4 = T.t3Prob_n(:,1);
+                                %                                 X5 = T.t4Prob_n(:,1);
+                                X4 = T.T3Rank_n_binned;
+                                X5 = T.T4Rank_n_binned;
+                            otherwise
+                                X4 = mean(T.t3Prob_n , 2);
+                                X5 = mean(T.t4Prob_n , 2);
+                        end
+                    case 0
+                        X3 = T.t2Prob;
+                        switch LastIPI
+                            case 1
+                                X4 = T.t3Prob(:,1);
+                                X5 = T.t4Prob(:,1);
+                            otherwise
+                                X4 = mean(T.t3Prob , 2);
+                                X5 = mean(T.t4Prob , 2);
+                        end
+                end
+                
+                X6 = max(T.BN) - [T.BN] +1;
+                switch N4
+                    case {'n' 'N'}
+                        X = [X1 X2 X3 X4 X5 X6];
+                        xx    = {[1 6] , [1 2 6] ,  [1 3 6]  , [1,3:4,6]           ,[1 3:6] ,      [1:3,6]  ,        [1:4,6]          [1:6]};
+                        Y = T.IPI;
+                        label = {'I+L' '  I+C+L', 'I+1st+L' ,'I+1st+2nd+L'    'I+1st+2nd+3rd+L' , 'I+C+1st+L'  ,  'I+C+1st+2nd+L'  ,  'Full'};
+                    otherwise
+                        X = [X1 X2 X3 X4 X5 X6];
+                        xx    = {[1 6] , [1 2 6] ,  [1 3 6]  , [1,3:4,6]           ,[1 3:6] ,      [1:3,6]  ,        [1:4,6]          [1:6]};
+                        Y = T.IPI_norm;
+                        label = {'I+L' '  I+C+L', 'I+1st+L' ,'I+1st+2nd+L'    'I+1st+2nd+3rd+L' , 'I+C+1st+L'  ,  'I+C+1st+2nd+L'  ,  'Full'};
+                end
+                Xnew = [X1];
+                B = pinv(Xnew'*Xnew)*Xnew'*Y;
+                Ypred = Xnew*B;
+                Res  = Y-Ypred;
+                TSS = sum(Y.^2); % Total Variance
+                FSS1 = sum(Ypred.^2); % Fitted Variance of the Null Model (just the intercept)
+                RSS1 = sum((Y-Ypred).^2); % Residual Variance of the Null Model
+                for k = 1:length(xx)
+                    Xnew = X(:,xx{k});
+                    Bnew = pinv(Xnew'*Xnew)*Xnew'*Y;
+                    Ypred_new = Xnew*Bnew;
+                    FSS0(k) = sum(Ypred_new.^2);  % Fitted Variance of the partial model
+                    RSS0(k) = sum((Y-Ypred_new).^2); % Residual Variance of the partial Model
+                end
+                % ___________________________      R_squared = 1 - (Residual variance of the partial model/Residual variance of the null model)
+                R2{dd-1}(sn , :) = 1 - (RSS0./RSS1);
+                xlab{dd-1}(sn , :) = 1:length(xx);
+                % ___________________________
             end
-            
-            X6 = max(T.BN) - [T.BN] +1;
-            switch N4
-                case {'n' 'N'}
-                    X = [X1 X2 X3 X4 X5 X6];
-                    xx    = {[1 6] , [1 2 6] ,  [1 3 6]  , [1,3:4,6]           ,[1 3:6] ,      [1:3,6]  ,        [1:4,6]          [1:6]};
-                    Y = T.IPI;
-                    label = {'I+L' '  I+C+L', 'I+1st+L' ,'I+1st+2nd+L'    'I+1st+2nd+3rd+L' , 'I+C+1st+L'  ,  'I+C+1st+2nd+L'  ,  'Full'};
-                otherwise
-                    X = [X1 X2 X3 X4 X5];
-                    xx    = {[1] , [1 2] ,  [1 3]  , [1,3:4]           ,[1 3:5] ,      [1:3]  ,        [1:4]          [1:5]};
-                    Y = T.IPI_norm;
-                    label = {'I' '  I+C', 'I+1st' ,'I+1st+2nd'    'I+1st+2nd+3rd' , 'I+C+1st'  ,  'I+C+1st+2nd'  ,  'Full'};
-            end
-            Xnew = [X1];
-            B = pinv(Xnew'*Xnew)*Xnew'*Y;
-            Ypred = Xnew*B;
-            Res  = Y-Ypred;
-            TSS = sum(Y.^2); % Total Variance
-            FSS1 = sum(Ypred.^2); % Fitted Variance of the Null Model (just the intercept)
-            RSS1 = sum((Y-Ypred).^2); % Residual Variance of the Null Model
-            for k = 1:length(xx)
-                Xnew = X(:,xx{k});
-                Bnew = pinv(Xnew'*Xnew)*Xnew'*Y;
-                Ypred_new = Xnew*Bnew;
-                FSS0(k) = sum(Ypred_new.^2);  % Fitted Variance of the partial model
-                RSS0(k) = sum((Y-Ypred_new).^2); % Residual Variance of the partial Model
-            end
-            % ___________________________      R_squared = 1 - (Residual variance of the partial model/Residual variance of the null model)
-            R2(sn , :) = 1 - (RSS0./RSS1);
-            xlab(sn , :) = 1:length(xx);
-            % ___________________________
         end
         figure('color' , 'white')
-        cCount = 1;
-        f = figure;
-        [xcoord,ePLOT,ERROR] = lineplot(reshape(xlab , numel(xlab) , 1) , reshape(R2 , numel(R2) , 1) , 'plotfcn' , 'nanmean', 'linewidth' , 3);
-        close(f)
-        errorbar(xcoord,ePLOT,ERROR  , 'LineWidth' , 3)
-        hold on
-        plotshade(xcoord',ePLOT , ERROR,'transp' , .2 ,'linewidth' , 3 , 'linestyle' , ':');
-        ylabel('R^2')
-        set(gca , 'XTick' , [1: length(xx)] , 'XTickLabels' ,label,'FontSize' , 20 ,'XTickLabelRotation' , 45)
-        title(['R^2 Model Comparisons in ' , titleSuffix])
-        grid on
+        for dd = 1:3
+            subplot(1,3,dd)
+            cCount = 1;
+            f = figure;
+            [xcoord,ePLOT,ERROR] = lineplot(reshape(xlab{dd} , numel(xlab{dd}) , 1) , reshape(R2{dd} , numel(R2{dd}) , 1) , 'plotfcn' , 'nanmean', 'linewidth' , 3);
+            close(f)
+            errorbar(xcoord,ePLOT,ERROR  , 'LineWidth' , 3)
+            hold on
+            plotshade(xcoord',ePLOT , ERROR,'transp' , .2 ,'linewidth' , 3 , 'linestyle' , ':');
+            ylabel('R^2')
+            title([titleSuffix, ' , Days ' , num2str(dd)])
+            set(gca , 'XLim' , [0 length(xx)+1] , 'XTick' , [1: length(xx)] , 'XTickLabels' , label , 'FontSize' , 20 ,...
+                'XTickLabelRotation',45,'YLim' , [0 .4],'Box' , 'off' , 'GridAlpha' , 1)
+            title([titleSuffix , ' Day ' , num2str(dd+1)])
+            grid on
+        end
         
         
         out = [];
