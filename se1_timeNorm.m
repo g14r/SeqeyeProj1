@@ -1,4 +1,4 @@
-function N = se1_timeNorm(Dall , what, subjnum, day , rep)
+          function N = se1_timeNorm(Dall , what, subjnum, day , rep)
 
 prefix = 'se1_';
 baseDir = '/Users/nedakordjazi/Documents/SeqEye/SeqEye1/analyze';
