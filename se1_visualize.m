@@ -5816,13 +5816,12 @@ switch what
         %             otherwise
         %                 LastIPI = 0;
         %         end
-        norma = 1;
+        cond = 1;
         LastIPI = 1;
         N3 = input('look into Chunked/Random/All sequences? (c/r/a)'  , 's');
-        %         N4 = input('Use normalized IPIs? (Y/N)'  , 's');
+        N4 = input('Use normalized IPIs? (Y/N)'  , 's');
         %         N5 = input('Analyse Medians, or raw IPIs? (M/R)' , 's');
         %         N3 = 'c';
-        N4 = 'n';
         N5 = 'r';
         load([baseDir , '/CMB.mat'])
         
@@ -5870,28 +5869,36 @@ switch what
         M.X2(M.X2==0) = 1; % Random = between
         M.X2(M.X2==2) = -1;  % within
         
-        switch norma
+        switch cond
             case 1
-                M.X3 = M.t2Rank_n_binned;
+                temp = M.t2Prob_n;
+                M.X3 = ceil(1.5*(1 + mapminmax(temp')))';
                 switch LastIPI
                     case 1
-                        %                                 T.X4 = T.t3Prob_n(:,1);
-                        %                                 T.X5 = T.t4Prob_n(:,1);
-                        M.X4 = M.t3Rank_n_binned;
-                        M.X5 = M.t4Rank_n_binned;
+                        temp = M.t3Prob_n(:,1);
+                        M.X4 = ceil(1.5*(1 + mapminmax(temp')))';
+                        temp = M.t4Prob_n(:,1);
+                        M.X5 = ceil(1.5*(1 + mapminmax(temp')))';
                     otherwise
-                        M.X4 = mean(M.t3Prob_n , 2);
-                        M.X5 = mean(M.t4Prob_n , 2);
+                        temp = mean(M.t3Prob_n , 2);
+                        M.X4 = ceil(1.5*(1 + mapminmax(temp')))';
+                        temp = mean(M.t4Prob_n , 2);
+                        M.X5 = ceil(1.5*(1 + mapminmax(temp')))';
                 end
             case 0
-                M.X3 = M.t2Prob;
+                temp = M.t2Prob;
+                M.X3 = ceil(1.5*(1 + mapminmax(temp')))';
                 switch LastIPI
                     case 1
-                        M.X4 = M.t3Prob(:,1);
-                        M.X5 = M.t4Prob(:,1);
+                        temp = M.t3Prob(:,1);
+                        M.X4 = ceil(1.5*(1 + mapminmax(temp')))';
+                        temp = M.t4Prob(:,1);
+                        M.X5 = ceil(1.5*(1 + mapminmax(temp')))';
                     otherwise
-                        M.X4 = mean(M.t3Prob , 2);
-                        M.X5 = mean(M.t4Prob , 2);
+                        temp = mean(M.t3Prob , 2);
+                        M.X4 = ceil(1.5*(1 + mapminmax(temp')))';
+                        temp = mean(M.t4Prob , 2);
+                        M.X5 = ceil(1.5*(1 + mapminmax(temp')))';
                 end
         end
         nB = fliplr(round(linspace(1 , 20  ,max(M.BN))));
@@ -5902,13 +5909,15 @@ switch what
         
         M.X7 = ismember(M.t2 , [21:25])  +1;
         M.X = [M.X1 M.X2 M.X3 M.X4 M.X5 M.X6 M.X7];
-        xx =     {[1] [1 6]   [1 6:7]    [1:2 6:7] ,   [1,3 6:7] ,   [1,4 6:7]        [1,3:5,6:7]          ,[1:3  , 6:7] ,      [1,2:4,6:7]  ,    [1:7]};
-        label = {'I'  'I+L'    'I+L+R'  'I+C+L+R',     'I+1st+L+R' ,'I+1st+2nd+L+R'    'I+1st+2nd+3rd+L+R' , 'I+C+1st+L+R'  ,  'I+C+1st+2nd+L+R'  ,  'Full'};
         switch N4
             case {'n' 'N'}
-                Y = M.IPI;
+                xx =     {[1 6]   [1 6:7]    [1 2 6:7] ,   [1 3 6:7] ,   [1 4 6:7]        [1 3:5,6:7]          ,[1:3  , 6:7] ,      [1:4,6:7]  ,    [1:7]};
+                label = {'L'    'L+R'  'C+L+R',     '1st+L+R' ,'1st+2nd+L+R'    '1st+2nd+3rd+L+R' , 'C+1st+L+R'  ,  'C+1st+2nd+L+R'  ,  'Full'};
             otherwise
-                Y_test = M.IPI_norm;
+                M.IPI = M.IPI_norm;
+                titleSuffix = [titleSuffix , '-norm'];
+                xx =     {[1 7]    [1:2 7] ,   [1 3 7] ,   [1 4 7]        [1 3:5,7]          ,[1:3  , 7] ,      [1:4,7]  ,    [1:5 , 7]};
+                label = {'R'  'C+R',     '1st+R' ,'1st+2nd+R'    '1st+2nd+3rd+R' , 'C+1st+R'  ,  'C+1st+2nd+R'  ,  'Full'};
         end
         reglabel = {'intercept' , 'learning' ,'within/between chunk', '1st order probability (1:5)' ,'2nd order probability (1:5)' ,'3rd order probability (1:5)' ,'repetition of the same finger'};
         % =================== % =================== % =================== % =================== Make Modelzzzzz BITCH!
@@ -5926,16 +5935,33 @@ switch what
                         Test = getrow(T , CVI==cvl);
                         Train = getrow(T , CVI~=cvl);
                         params  = xx{1};   % Null Model
-                        Mdl = fitglm(Train.X(:,params) , Train.IPI,'Intercept',false);
-                        [Ypred,Posterior] = predict(Mdl,Test.X(:,params));
-                        Ypred0 = Ypred;
+                        X = Train.X(:,params);
+                        X = X - repmat(mean(X) , length(X) , 1); % mean subtract the design matrix
+                        Y = Train.IPI - mean(Train.IPI);  % mean subtract the output
+                        Mdl = fitglm(X , Y ,'Intercept',false);
+                        
+                        %Test
+                        X = Test.X(:,params);
+                        X = X - repmat(mean(X) , length(X) , 1); % mean subtract the design matrix
+                        Y = Test.IPI - mean(Test.IPI);  % mean subtract the output
+                        [Ypred0,Posterior] = predict(Mdl,X);
                         for ml = 1:length(xx)
                             params  = xx{ml};
-                            Mdl = fitglm(Train.X(:,params) , Train.IPI,'Intercept',false);
-                            [Ypred,Posterior] = predict(Mdl,Test.X(:,params));
-                            [cv_Dev , lh_comp] = se2_crossval_DEVandLH(Test.IPI , Ypred , Ypred0);
-                            out.R2(count,:)   = se2_R2ModelComp(Test.IPI , Ypred0 , Ypred);
-                            out.R2_adjusted(count , 1) = se2_R2Adjusted(Test.IPI , Ypred , length(params) + 1);
+                            X = Train.X(:,params);
+                            X = X - repmat(mean(X) , length(X) , 1); % mean subtract the design matrix
+                            Y = Train.IPI - mean(Train.IPI);  % mean subtract the output
+                            Mdl = fitglm(X , Y,'Intercept',false);
+                            
+                            %test
+                            X = Test.X(:,params);
+                            X = X - repmat(mean(X) , length(X) , 1); % mean subtract the design matrix
+                            Y = Test.IPI - mean(Test.IPI);  % mean subtract the output
+                            [Ypred,Posterior] = predict(Mdl,X);
+                            
+                            [cv_Dev , lh_comp] = se2_crossval_DEVandLH(Y , Ypred , Ypred0);
+                            out.R2(count,:)   = se2_R2ModelComp(Y , Ypred0 , Ypred);
+                            out.R2_adjusted(count , 1) = se2_R2Adjusted(Y, Ypred , length(params) + 1);
+                            
                             out.B{count,:} = Mdl.Coefficients.Estimate;
                             % Deviation  = -2*ln[(likelihood of fitted model)/(likelihood of saturated model)]
                             out.Dev(count , 1) = Mdl.Deviance;
@@ -5946,6 +5972,8 @@ switch what
                             out.day(count , 1) = dd;
                             out.xx(count , 1) = ml;
                             out.cv (count , 1) = cvl;
+                            temp = corrcoef(Y , Ypred);
+                            out.corYY (count , 1) = temp(2);
                             count = count+1;
                             disp(['Model ' , num2str(ml) , ' - Day ' , num2str(dd) , ' - Subject ' , num2str(sn) , ' - Horizon ' , num2str(h)])
                         end
@@ -5963,34 +5991,23 @@ switch what
         clear Mdl
         % =================== % =================== % =================== % =================== Compare Modelzzzzz BITCH!
         dayz = {[2] [3] [4]};
-        K = tapply(out , {'hor' , 'subj' , 'day' , 'xx'} , {'R2' , 'nanmean'} ,{'R2_adjusted' , 'nanmean'} ,  {'Dev' , 'nanmean'}); % average over cv loops
-        K1 = getrow(K  , K.hor == 100);
-        h = 1;
-        for dd = 1:length(dayz)
-            for sn = 1:length(subj_name) - 1
-                a = getrow(K , ismember(K.day , dayz{dd}) & K.subj == sn);
-                a.normDev = a.Dev(1)- a.Dev;
-                K1 = addstruct(K1 , a);
-            end
-        end
+        K = tapply(out , {'hor' , 'subj' , 'day' , 'xx'} , {'R2' , 'nanmean'} ,{'R2_adjusted' , 'nanmean'} ,  {'corYY' , 'nanmean'} ,  {'lh_comp' , 'nanmean'}); % average over cv loops
         
         clear xp_dev pp_dev ep_dev xp_r2 pp_r2 ep_r2 xp_r2a pp_r2a ep_r2a dev_image R2_image xp_dn  pp_dn ep_dn dvn_image
         h1 = figure;
-        h = 1;
+        h = 1
         for dd = 1:length(dayz)
-            [xp_dev{dd}(h, :) , pp_dev{dd}(h,:) , ep_dev{dd}(h,:)]  = lineplot(K1.xx, K1.Dev , 'plotfcn','nanmean' ,  'subset' ,ismember(K1.day , dayz{dd}));
+            [xp_cor{dd}(h, :) , pp_cor{dd}(h,:) , ep_cor{dd}(h,:)]  = lineplot(K.xx, K.corYY , 'plotfcn','nanmean' ,  'subset' , K.hor == h & ismember(K.day , dayz{dd}));
             hold on
-            [xp_r2{dd}(h, :) , pp_r2{dd}(h,:) , ep_r2{dd}(h,:)]  = lineplot(K1.xx, K1.R2 , 'plotfcn','nanmean' , 'subset' , ismember(K1.day , dayz{dd}));
-            [xp_r2a{dd}(h, :) , pp_r2a{dd}(h,:) , ep_r2a{dd}(h,:)]  = lineplot(K1.xx, K1.R2_adjusted , 'plotfcn','nanmean' , 'subset' , ismember(K1.day , dayz{dd}));
-            [xp_dn{dd}(h, :) , pp_dn{dd}(h,:) , ep_dn{dd}(h,:)]  = lineplot(K1.xx, K1.normDev ,  'plotfcn','nanmean' ,'subset' , ismember(K1.day , dayz{dd}));
-            dev_image(dd,h,:) = pp_dev{dd}(h,:);
-            R2_image(dd,h,:) = pp_r2{dd}(h,:);
-            dvn_image(dd,h,:) = pp_dn{dd}(h,:);
+            [xp_r2{dd}(h, :) , pp_r2{dd}(h,:) , ep_r2{dd}(h,:)]  = lineplot(K.xx, K.R2 , 'plotfcn','nanmean' , 'subset' , K.hor == h & ismember(K.day , dayz{dd}));
+            [xp_r2a{dd}(h, :) , pp_r2a{dd}(h,:) , ep_r2a{dd}(h,:)]  = lineplot(K.xx, K.R2_adjusted , 'plotfcn','nanmean' , 'subset' , K.hor == h & ismember(K.day , dayz{dd}));
+            [xp_ml{dd}(h, :) , pp_ml{dd}(h,:) , ep_ml{dd}(h,:)]  = lineplot(K.xx, K.lh_comp ,  'plotfcn','nanmean' ,'subset' , K.hor == h & ismember(K.day , dayz{dd}));
             hold on
         end
         
         close(h1)
         % =================== % =================== % =================== % =================== Visualize model R2 comparisons!
+        
         
         
         
@@ -6003,17 +6020,48 @@ switch what
             for h = 1
                 %   errorbar(xp{g}(h, :) , pp{g}(h,:) , ep{g}(h,:) , 'color' , colors(cCount,:) , 'LineWidth' , 3)
                 hold on
-                eval(['h' , num2str(h) , ' = plotshade(xp_r2{dd}(h, 2:end) , pp_r2{dd}(h,2:end) , ep_r2{dd}(h,2:end),''transp'' , .2 , ''patchcolor'' , ''b'', ''linecolor'' , ''b'' , ''linewidth'' , 3 , ''linestyle'' , '':'')']);
+                eval(['h' , num2str(h) , ' = plotshade(xp_r2{dd}(h, 1:end) , pp_r2{dd}(h,1:end) , ep_r2{dd}(h,1:end),''transp'' , .2 , ''patchcolor'' , ''b'', ''linecolor'' , ''b'' , ''linewidth'' , 3 , ''linestyle'' , '':'')']);
                 hold on
             end
             ylabel('R^2 nomarlized to the Null model')
-            set(gca , 'XLim' , [1 length(xx)],'XTick' , [2: length(xx)] , 'XTickLabels' , label(2:end) , 'FontSize' , 20 ,...
+            set(gca , 'XLim' , [1 length(xx)],'XTick' , [1: length(xx)] , 'XTickLabels' , label(1:end) , 'FontSize' , 20 ,...
                 'XTickLabelRotation',45,'Box' , 'off' , 'GridAlpha' , 1)
             title([titleSuffix , ' , Days ' , num2str(dayz{dd})])
             grid on
         end
         out = [];
-    case 'Crossval_GLM_ridge'
+        
+        % =================== % =================== % =================== % =================== Visualize model R2 comparisons!
+        
+        
+        figure('color' , 'white')
+        
+        
+        
+        for dd = 1:length(dayz)
+            subplot(1,length(dayz),dd)
+            for h = 1
+                %   errorbar(xp{g}(h, :) , pp{g}(h,:) , ep{g}(h,:) , 'color' , colors(cCount,:) , 'LineWidth' , 3)
+                hold on
+                eval(['h' , num2str(h) , ' = plotshade(xp_cor{dd}(h, 1:end) , pp_cor{dd}(h,1:end) , ep_cor{dd}(h,1:end),''transp'' , .2 , ''patchcolor'' , ''b'', ''linecolor'' , ''b'' , ''linewidth'' , 3 , ''linestyle'' , '':'')']);
+                hold on
+            end
+            ylabel('Prediction-output correlation to the Null model')
+            set(gca , 'XLim' , [1 length(xx)],'XTick' , [1: length(xx)] , 'XTickLabels' , label(1:end) , 'FontSize' , 20 ,...
+                'XTickLabelRotation',45,'Box' , 'off' , 'GridAlpha' , 1)
+            title([titleSuffix , ' , Days ' , num2str(dayz{dd})])
+            grid on
+        end
+        out = [];
+        
+    case 'Crossval_GLM_ridge' 
+        % for ridge the trick is to mean subtract each column and dont
+        % include intecept - the mean of the intercept would be too high
+        % and it will push the week regreesors towards zero oo much
+        % but do mean subtract the Y
+        
+        
+        
         %             N1 = input('Use Conditional Transition Probabilities? (y/n)' , 's');
         %         switch N1
         %             case 'y'
@@ -6028,13 +6076,12 @@ switch what
         %             otherwise
         %                 LastIPI = 0;
         %         end
-        norm = 1;
+        cond = 1;
         LastIPI = 1;
         N3 = input('look into Chunked/Random/All sequences? (c/r/a)'  , 's');
-        %         N4 = input('Use normalized IPIs? (Y/N)'  , 's');
+        N4 = input('Use normalized IPIs? (Y/N)'  , 's');
         %         N5 = input('Analyse Medians, or raw IPIs? (M/R)' , 's');
         %
-        N4 = 'n';
         N5 = 'r';
         
         
@@ -6063,8 +6110,7 @@ switch what
         switch N3
             case 'c'
                 M = C;
-                titleSuffix = 'Chunked';
-                
+                titleSuffix = 'Chunked';                
             case 'r'
                 M = R;
                 titleSuffix = 'Random';
@@ -6084,28 +6130,36 @@ switch what
         M.X2(M.X2==0) = 1; % Random = between
         M.X2(M.X2==2) = -1;  % within
         
-        switch norm
+        switch cond
             case 1
-                M.X3 = M.t2Rank_n_binned;
+                temp = M.t2Prob_n;
+                M.X3 = ceil(1.5*(1 + mapminmax(temp')))';
                 switch LastIPI
                     case 1
-                        %                                 T.X4 = T.t3Prob_n(:,1);
-                        %                                 T.X5 = T.t4Prob_n(:,1);
-                        M.X4 = M.t3Rank_n_binned;
-                        M.X5 = M.t4Rank_n_binned;
+                        temp = M.t3Prob_n(:,1);
+                        M.X4 = ceil(1.5*(1 + mapminmax(temp')))';
+                        temp = M.t4Prob_n(:,1);
+                        M.X5 = ceil(1.5*(1 + mapminmax(temp')))';
                     otherwise
-                        M.X4 = mean(M.t3Prob_n , 2);
-                        M.X5 = mean(M.t4Prob_n , 2);
+                        temp = mean(M.t3Prob_n , 2);
+                        M.X4 = ceil(1.5*(1 + mapminmax(temp')))';
+                        temp = mean(M.t4Prob_n , 2);
+                        M.X5 = ceil(1.5*(1 + mapminmax(temp')))';
                 end
             case 0
-                M.X3 = M.t2Prob;
+                temp = M.t2Prob;
+                M.X3 = ceil(1.5*(1 + mapminmax(temp')))';
                 switch LastIPI
                     case 1
-                        M.X4 = M.t3Prob(:,1);
-                        M.X5 = M.t4Prob(:,1);
+                        temp = M.t3Prob(:,1);
+                        M.X4 = ceil(1.5*(1 + mapminmax(temp')))';
+                        temp = M.t4Prob(:,1);
+                        M.X5 = ceil(1.5*(1 + mapminmax(temp')))';
                     otherwise
-                        M.X4 = mean(M.t3Prob , 2);
-                        M.X5 = mean(M.t4Prob , 2);
+                        temp = mean(M.t3Prob , 2);
+                        M.X4 = ceil(1.5*(1 + mapminmax(temp')))';
+                        temp = mean(M.t4Prob , 2);
+                        M.X5 = ceil(1.5*(1 + mapminmax(temp')))';
                 end
         end
         nB = fliplr(round(linspace(1 , 20  ,max(M.BN))));
@@ -6116,13 +6170,16 @@ switch what
         
         M.X7 = ismember(M.t2 , [21:25])  +1;
         M.X = [M.X1 M.X2 M.X3 M.X4 M.X5 M.X6 M.X7];
-        xx =     {[1] [1 6]   [1 6:7]    [1:2 6:7] ,   [1,3 6:7] ,   [1,4 6:7]        [1,3:5,6:7]          ,[1:3  , 6:7] ,      [1,2:4,6:7]  ,    [1:7]};
-        label = {'I'  'I+L'    'I+L+R'  'I+C+L+R',     'I+1st+L+R' ,'I+1st+2nd+L+R'    'I+1st+2nd+3rd+L+R' , 'I+C+1st+L+R'  ,  'I+C+1st+2nd+L+R'  ,  'Full'};
+        
         switch N4
             case {'n' 'N'}
-                Y = M.IPI;
+                xx =     {[6]   [6:7]    [2 6:7] ,   [3 6:7] ,   [4 6:7]        [3:5,6:7]          ,[2:3  , 6:7] ,      [2:4,6:7]  ,    [2:7]};
+                label = {'L'    'L+R'  'C+L+R',     '1st+L+R' ,'1st+2nd+L+R'    '1st+2nd+3rd+L+R' , 'C+1st+L+R'  ,  'C+1st+2nd+L+R'  ,  'Full'};
             otherwise
-                Y_test = M.IPI_norm;
+                M.IPI = M.IPI_norm;
+                titleSuffix = [titleSuffix , '-norm'];
+                xx =     {[7]    [2 7] ,   [3 7] ,   [4 7]        [3:5,7]          ,[2:3  , 7] ,      [2:4,7]  ,    [2:5 , 7]};
+                label = {'R'  'C+R',     '1st+R' ,'1st+2nd+R'    '1st+2nd+3rd+R' , 'C+1st+R'  ,  'C+1st+2nd+R'  ,  'Full'};
         end
         reglabel = {'intercept' , 'learning' ,'within/between chunk', '1st order probability (1:5)' ,'2nd order probability (1:5)' ,'3rd order probability (1:5)' ,'repetition of the same finger'};
         % =================== % =================== % =================== % =================== Make Modelzzzzz BITCH!
@@ -6130,7 +6187,7 @@ switch what
         CVfol = 3;
         if calc
             count = 1;
-            h = 1
+            h = 1;
             for dd = 2:4
                 for sn = 1:length(subj_name) - 1
                     T = getrow(M , ismember(M.SN , sn) & ismember(M.Day , dd));
@@ -6140,16 +6197,31 @@ switch what
                         Test = getrow(T , CVI==cvl);
                         Train = getrow(T , CVI~=cvl);
                         params  = xx{1};   % Null Model
-                        Mdl = fitrlinear(Train.X(:,params) , Train.IPI,'Lambda',.4,'Regularization','ridge' , 'FitBias' , false);
-                        Ypred = predict(Mdl,Test.X(:,params));
-                        Ypred0 = Ypred;
+                        X = Train.X(:,params);
+                        X = X - repmat(mean(X) , length(X) , 1); % mean subtract the design matrix
+                        Y = Train.IPI - mean(Train.IPI);  % mean subtract the output
+                        Mdl = fitrlinear(X , Y,'Lambda',.1,'Regularization','ridge' , 'FitBias' , false);
+                        
+                        X = Test.X(:,params);
+                        X = X - repmat(mean(X) , length(X) , 1); % mean subtract the design matrix
+                        Y = Test.IPI - mean(Test.IPI);  % mean subtract the output
+                        Ypred0 = predict(Mdl,X);
                         for ml = 1:length(xx)
                             params  = xx{ml};
-                            Mdl = fitrlinear(Train.X(:,params) , Train.IPI,'Lambda',.4,'Regularization','ridge' , 'FitBias' , false);
-                            Ypred = predict(Mdl,Test.X(:,params));
-                            [cv_Dev , lh_comp] = se2_crossval_DEVandLH(Test.IPI , Ypred , Ypred0);
-                            out.R2(count,:)   = se2_R2ModelComp(Test.IPI , Ypred0 , Ypred);
-                            out.R2_adjusted(count , 1) = se2_R2Adjusted(Test.IPI , Ypred , length(params) + 1);
+                            X = Train.X(:,params);
+                            X = X - repmat(mean(X) , length(X) , 1); % mean subtract the design matrix
+                            Y = Train.IPI - mean(Train.IPI);  % mean subtract the output
+                            Mdl = fitrlinear(X , Y,'Lambda',.1,'Regularization','ridge' , 'FitBias' , false);
+                            
+                            X = Test.X(:,params);
+                            X = X - repmat(mean(X) , length(X) , 1); % mean subtract the design matrix
+                            Y = Test.IPI - mean(Test.IPI);  % mean subtract the output
+                            
+                            
+                            Ypred = predict(Mdl,X);
+                            [cv_Dev , lh_comp] = se2_crossval_DEVandLH(Y , Ypred , Ypred0);
+                            out.R2(count,:)   = se2_R2ModelComp(Y , Ypred0 , Ypred);
+                            out.R2_adjusted(count , 1) = se2_R2Adjusted(Y , Ypred , length(params) + 1);
                             out.B{count,:} =  Mdl.Beta;
                             % Deviation  = -2*ln[(likelihood of fitted model)/(likelihood of saturated model)]
                             %                                 out.Dev(count , 1) = Mdl.Deviance;
@@ -6158,6 +6230,8 @@ switch what
                             out.hor(count , 1) = h;
                             out.subj(count , 1) = sn;
                             out.day(count , 1) = dd;
+                            temp = corrcoef(Y , Ypred);
+                            out.corYY (count , 1) = temp(2);
                             out.xx(count , 1) = ml;
                             out.cv (count , 1) = cvl;
                             count = count+1;
@@ -6176,19 +6250,17 @@ switch what
         clear Mdl
         % =================== % =================== % =================== % =================== Compare Modelzzzzz BITCH!
         dayz = {[2] [3] [4]};
-        K = tapply(out , {'hor' , 'subj' , 'day' , 'xx'} , {'R2' , 'nanmean'} ,{'R2_adjusted' , 'nanmean'} ,  {'cv_Dev' , 'nanmean'} ,  {'lh_comp' , 'nanmean'}); % average over cv loops
+        K = tapply(out , {'hor' , 'subj' , 'day' , 'xx'} , {'R2' , 'nanmean'} ,{'R2_adjusted' , 'nanmean'} ,  {'corYY' , 'nanmean'} ,  {'lh_comp' , 'nanmean'}); % average over cv loops
         
         clear xp_dev pp_dev ep_dev xp_r2 pp_r2 ep_r2 xp_r2a pp_r2a ep_r2a dev_image R2_image xp_dn  pp_dn ep_dn dvn_image
         h1 = figure;
         h = 1
         for dd = 1:length(dayz)
-            [xp_dev{dd}(h, :) , pp_dev{dd}(h,:) , ep_dev{dd}(h,:)]  = lineplot(K.xx, K.cv_Dev , 'plotfcn','nanmean' ,  'subset' , K.hor == h & ismember(K.day , dayz{dd}));
+            [xp_cor{dd}(h, :) , pp_cor{dd}(h,:) , ep_cor{dd}(h,:)]  = lineplot(K.xx, K.corYY , 'plotfcn','nanmean' ,  'subset' , K.hor == h & ismember(K.day , dayz{dd}));
             hold on
             [xp_r2{dd}(h, :) , pp_r2{dd}(h,:) , ep_r2{dd}(h,:)]  = lineplot(K.xx, K.R2 , 'plotfcn','nanmean' , 'subset' , K.hor == h & ismember(K.day , dayz{dd}));
             [xp_r2a{dd}(h, :) , pp_r2a{dd}(h,:) , ep_r2a{dd}(h,:)]  = lineplot(K.xx, K.R2_adjusted , 'plotfcn','nanmean' , 'subset' , K.hor == h & ismember(K.day , dayz{dd}));
             [xp_ml{dd}(h, :) , pp_ml{dd}(h,:) , ep_ml{dd}(h,:)]  = lineplot(K.xx, K.lh_comp ,  'plotfcn','nanmean' ,'subset' , K.hor == h & ismember(K.day , dayz{dd}));
-            dev_image(dd,h,:) = pp_dev{dd}(h,:);
-            R2_image(dd,h,:) = pp_r2{dd}(h,:);
             hold on
         end
         
@@ -6199,24 +6271,42 @@ switch what
         
         
         figure('color' , 'white')
-        
-        
-        
         for dd = 1:length(dayz)
             subplot(1,length(dayz),dd)
             for h = 1
                 %   errorbar(xp{g}(h, :) , pp{g}(h,:) , ep{g}(h,:) , 'color' , colors(cCount,:) , 'LineWidth' , 3)
                 hold on
-                eval(['h' , num2str(h) , ' = plotshade(xp_r2{dd}(h, 2:end) , pp_r2{dd}(h,2:end) , ep_r2{dd}(h,2:end),''transp'' , .2 , ''patchcolor'' , ''b'', ''linecolor'' , ''b'' , ''linewidth'' , 3 , ''linestyle'' , '':'')']);
+                eval(['h' , num2str(h) , ' = plotshade(xp_r2{dd}(h, 1:end) , pp_r2{dd}(h,1:end) , ep_r2{dd}(h,1:end),''transp'' , .2 , ''patchcolor'' , ''b'', ''linecolor'' , ''b'' , ''linewidth'' , 3 , ''linestyle'' , '':'')']);
                 hold on
             end
             ylabel('R^2 nomarlized to the Null model')
-            set(gca , 'XLim' , [1 length(xx)],'XTick' , [2: length(xx)] , 'XTickLabels' , label(2:end) , 'FontSize' , 20 ,...
+            set(gca , 'XLim' , [1 length(xx)],'XTick' , [1: length(xx)] , 'XTickLabels' , label(1:end) , 'FontSize' , 20 ,...
                 'XTickLabelRotation',45,'Box' , 'off' , 'GridAlpha' , 1)
             title([titleSuffix , ' , Days ' , num2str(dayz{dd})])
             grid on
         end
         out = [];
+        
+        
+        
+        
+        figure('color' , 'white')
+        for dd = 1:length(dayz)
+            subplot(1,length(dayz),dd)
+            for h = 1
+                %   errorbar(xp{g}(h, :) , pp{g}(h,:) , ep{g}(h,:) , 'color' , colors(cCount,:) , 'LineWidth' , 3)
+                hold on
+                eval(['h' , num2str(h) , ' = plotshade(xp_cor{dd}(h, 1:end) , pp_cor{dd}(h,1:end) , ep_cor{dd}(h,1:end),''transp'' , .2 , ''patchcolor'' , ''b'', ''linecolor'' , ''b'' , ''linewidth'' , 3 , ''linestyle'' , '':'')']);
+                hold on
+            end
+            ylabel('Prediction-output correlation to the Null model')
+            set(gca , 'XLim' , [1 length(xx)],'XTick' , [1: length(xx)] , 'XTickLabels' , label(1:end) , 'FontSize' , 20 ,...
+                'XTickLabelRotation',45,'Box' , 'off' , 'GridAlpha' , 1)
+            title([titleSuffix , ' , Days ' , num2str(dayz{dd})])
+            grid on
+        end
+        out = [];
+        
         
         
         
