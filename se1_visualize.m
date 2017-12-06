@@ -58,8 +58,8 @@ function out  = se1_visualize(Dall , subjnum, what, distance, calc , day , rep, 
 %%
 
 prefix = 'se1_';
-baseDir = '/Users/nedakordjazi/Documents/SeqEye/SeqEye1/analyze';
-% baseDir = '/Users/nkordjazi/Documents/SeqEye/SeqEye1/analyze';
+% baseDir = '/Users/nedakordjazi/Documents/SeqEye/SeqEye1/analyze';
+baseDir = '/Users/nkordjazi/Documents/SeqEye/SeqEye1/analyze';
 subj_name = {'SZ1','JN2' ,'SP1','AT1','DW1','KL1','JG1','GP1','SK1' ,'NM1','VR1','PB1' , 'XX1'};
 if subjnum == length(subj_name)
     %     subjnum = [1 3:length(subj_name)-1];
@@ -5823,6 +5823,7 @@ switch what
         %         N5 = input('Analyse Medians, or raw IPIs? (M/R)' , 's');
         %         N3 = 'c';
         N5 = 'r';
+        N6 = input('Bar or Shade? (b/s)' , 's');
         load([baseDir , '/CMB.mat'])
         
         
@@ -5913,14 +5914,16 @@ switch what
             case {'n' 'N'}
                 xx =     {[1 6]   [1 6:7]    [1 2 6:7] ,   [1 3 6:7] ,   [1 4 6:7]        [1 3:5,6:7]          ,[1:3  , 6:7] ,      [1:4,6:7]  ,    [1:7]};
                 label = {'L'    'L+R'  'C+L+R',     '1st+L+R' ,'1st+2nd+L+R'    '1st+2nd+3rd+L+R' , 'C+1st+L+R'  ,  'C+1st+2nd+L+R'  ,  'Full'};
+                 plotIND = [2:5 , 8];
             otherwise
                 M.IPI = M.IPI_norm;
                 titleSuffix = [titleSuffix , '-norm'];
-                xx =     {[1 7]    [1:2 7] ,   [1 3 7] ,   [1 4 7]        [1 3:5,7]          ,[1:3  , 7] ,      [1:4,7]  ,    [1:5 , 7]};
+                xx =     {[7]    [2 7] ,   [3 7] ,   [4 7]        [3:5,7]          ,[2:3  , 7] ,      [2:4,7]  ,    [2:5 , 7]};
                 label = {'R'  'C+R',     '1st+R' ,'1st+2nd+R'    '1st+2nd+3rd+R' , 'C+1st+R'  ,  'C+1st+2nd+R'  ,  'Full'};
+                 plotIND = [2:5 , 8];
         end
-        reglabel = {'intercept' , 'learning' ,'within/between chunk', '1st order probability (1:5)' ,'2nd order probability (1:5)' ,'3rd order probability (1:5)' ,'repetition of the same finger'};
-        % =================== % =================== % =================== % =================== Make Modelzzzzz BITCH!
+        cleanLabel = {'within/between Chunk', '1st order probability' ,'1st + 2nd order probability' ,'1st + 2nd + 3rd order probability' ,'Full Model'};
+         % =================== % =================== % =================== % =================== Make Modelzzzzz BITCH!
         
         CVfol = 3;
         if calc
@@ -6008,51 +6011,74 @@ switch what
         close(h1)
         % =================== % =================== % =================== % =================== Visualize model R2 comparisons!
         
-        
-        
-        
-        figure('color' , 'white')
-        
-        
-        
-        for dd = 1:length(dayz)
-            subplot(1,length(dayz),dd)
-            for h = 1
-                %   errorbar(xp{g}(h, :) , pp{g}(h,:) , ep{g}(h,:) , 'color' , colors(cCount,:) , 'LineWidth' , 3)
-                hold on
-                eval(['h' , num2str(h) , ' = plotshade(xp_r2{dd}(h, 1:end) , pp_r2{dd}(h,1:end) , ep_r2{dd}(h,1:end),''transp'' , .2 , ''patchcolor'' , ''b'', ''linecolor'' , ''b'' , ''linewidth'' , 3 , ''linestyle'' , '':'')']);
-                hold on
-            end
-            ylabel('R^2 nomarlized to the Null model')
-            set(gca , 'XLim' , [1 length(xx)],'XTick' , [1: length(xx)] , 'XTickLabels' , label(1:end) , 'FontSize' , 20 ,...
-                'XTickLabelRotation',45,'Box' , 'off' , 'GridAlpha' , 1)
-            title([titleSuffix , ' , Days ' , num2str(dayz{dd})])
-            grid on
+         switch N6
+            case{'s'}
+                
+                
+                figure('color' , 'white')
+                for dd = 1:length(dayz)
+                    subplot(1,length(dayz),dd)
+                    for h = 1
+                        %   errorbar(xp{g}(h, :) , pp{g}(h,:) , ep{g}(h,:) , 'color' , colors(cCount,:) , 'LineWidth' , 3)
+                        hold on
+                        eval(['h' , num2str(h) , ' = plotshade(xp_r2{dd}(h, 1:end) , pp_r2{dd}(h,1:end) , ep_r2{dd}(h,1:end),''transp'' , .2 , ''patchcolor'' , ''b'', ''linecolor'' , ''b'' , ''linewidth'' , 3 , ''linestyle'' , '':'')']);
+                        hold on
+                    end
+                    ylabel('R^2 nomarlized to the Null model')
+                    set(gca , 'XLim' , [0 length(plotIND)+1],'XTick' , [1: length(plotIND)] , 'XTickLabels' , cleanLabel , 'FontSize' , 20 ,...
+                        'XTickLabelRotation',45,'Box' , 'off' , 'GridAlpha' , 1)
+                    title([titleSuffix , ' , Days ' , num2str(dayz{dd})])
+                    grid on
+                end
+                out = [];
+                
+                
+                
+                
+                figure('color' , 'white')
+                for dd = 1:length(dayz)
+                    subplot(1,length(dayz),dd)
+                    for h = 1
+                        %   errorbar(xp{g}(h, :) , pp{g}(h,:) , ep{g}(h,:) , 'color' , colors(cCount,:) , 'LineWidth' , 3)
+                        hold on
+                        eval(['h' , num2str(h) , ' = plotshade(xp_cor{dd}(h, 1:end) , pp_cor{dd}(h,1:end) , ep_cor{dd}(h,1:end),''transp'' , .2 , ''patchcolor'' , ''b'', ''linecolor'' , ''b'' , ''linewidth'' , 3 , ''linestyle'' , '':'')']);
+                        hold on
+                    end
+                    ylabel('Prediction-output correlation to the Null model')
+                    set(gca , 'XLim' , [1 length(xx)],'XTick' , [1: length(xx)] , 'XTickLabels' , label(1:end) , 'FontSize' , 20 ,...
+                        'XTickLabelRotation',45,'Box' , 'off' , 'GridAlpha' , 1)
+                    title([titleSuffix , ' , Days ' , num2str(dayz{dd})])
+                    grid on
+                end
+                out = [];
+            otherwise
+                xp_ = reshape(cell2mat(xp_r2) , size(xp_r2{1} , 1) , size(xp_r2{1} , 2) , length(xp_r2));
+                pp_ = reshape(cell2mat(pp_r2) , size(pp_r2{1} , 1) , size(pp_r2{1} , 2) , length(pp_r2));
+                ep_ = reshape(cell2mat(ep_r2) , size(ep_r2{1} , 1) , size(ep_r2{1} , 2) , length(ep_r2));
+                
+                
+                ylim = [min(min(min(pp_)))   max(max(max(pp_)))];
+                figure('color' , 'white')
+                    bar(squeeze(pp_(:,plotIND , :))');
+                    grid on
+                    set(gca , 'FontSize' , 20 ,'Box' , 'off' , 'GridAlpha' , 1 , 'XTick' , [1:length(dayz)] , 'XTickLabel' , {'Day 1' , 'Day 2' , 'Day 3'},'YLim' , ylim)
+                    title([titleSuffix ,' - Model Crossvalidated R^2'])
+                legend(cleanLabel)
+                
+                xp_ = reshape(cell2mat(xp_cor) , size(xp_cor{1} , 1) , size(xp_cor{1} , 2) , length(xp_cor));
+                pp_ = reshape(cell2mat(pp_cor) , size(pp_cor{1} , 1) , size(pp_cor{1} , 2) , length(pp_cor));
+                ep_ = reshape(cell2mat(ep_cor) , size(ep_cor{1} , 1) , size(ep_cor{1} , 2) , length(ep_cor));
+                
+                ylim = [min(min(min(pp_)))   max(max(max(pp_)))];
+                figure('color' , 'white')
+                
+                    bar(squeeze(pp_(:,plotIND , :))');
+                    grid on
+                    set(gca , 'FontSize' , 20 ,'Box' , 'off' , 'GridAlpha' , 1 , 'XTick' , [1:length(dayz)-1] , 'XTickLabel' , {'Day 1' , 'Day 2' , 'Day 3'},...
+                        'YLim' , ylim)
+                    title([titleSuffix , ' - Model Prediction - Output Correlation'])
+                legend(cleanLabel)
         end
-        out = [];
-        
-        % =================== % =================== % =================== % =================== Visualize model R2 comparisons!
-        
-        
-        figure('color' , 'white')
-        
-        
-        
-        for dd = 1:length(dayz)
-            subplot(1,length(dayz),dd)
-            for h = 1
-                %   errorbar(xp{g}(h, :) , pp{g}(h,:) , ep{g}(h,:) , 'color' , colors(cCount,:) , 'LineWidth' , 3)
-                hold on
-                eval(['h' , num2str(h) , ' = plotshade(xp_cor{dd}(h, 1:end) , pp_cor{dd}(h,1:end) , ep_cor{dd}(h,1:end),''transp'' , .2 , ''patchcolor'' , ''b'', ''linecolor'' , ''b'' , ''linewidth'' , 3 , ''linestyle'' , '':'')']);
-                hold on
-            end
-            ylabel('Prediction-output correlation to the Null model')
-            set(gca , 'XLim' , [1 length(xx)],'XTick' , [1: length(xx)] , 'XTickLabels' , label(1:end) , 'FontSize' , 20 ,...
-                'XTickLabelRotation',45,'Box' , 'off' , 'GridAlpha' , 1)
-            title([titleSuffix , ' , Days ' , num2str(dayz{dd})])
-            grid on
-        end
-        out = [];
         
     case 'Crossval_GLM_ridge' 
         % for ridge the trick is to mean subtract each column and dont
