@@ -58,8 +58,8 @@ function out  = se1_visualize(Dall , subjnum, what, distance, calc , day , rep, 
 %%
 
 prefix = 'se1_';
-% baseDir = '/Users/nedakordjazi/Documents/SeqEye/SeqEye1/analyze';
-baseDir = '/Users/nkordjazi/Documents/SeqEye/SeqEye1/analyze';
+baseDir = '/Users/nedakordjazi/Documents/SeqEye/SeqEye1/analyze';
+% baseDir = '/Users/nkordjazi/Documents/SeqEye/SeqEye1/analyze';
 subj_name = {'SZ1','JN2' ,'SP1','AT1','DW1','KL1','JG1','GP1','SK1' ,'NM1','VR1','PB1' , 'XX1'};
 if subjnum == length(subj_name)
     %     subjnum = [1 3:length(subj_name)-1];
@@ -6057,26 +6057,30 @@ switch what
                 ep_ = reshape(cell2mat(ep_r2) , size(ep_r2{1} , 1) , size(ep_r2{1} , 2) , length(ep_r2));
                 
                 
-                ylim = [min(min(min(pp_)))   max(max(max(pp_)))];
+                lo = min(min(min(pp_)));
+                hi = max(max(max(pp_)));
+                ylim = [1.1*lo   1.1*hi];
                 figure('color' , 'white')
-                    bar(squeeze(pp_(:,plotIND , :))');
-                    grid on
-                    set(gca , 'FontSize' , 20 ,'Box' , 'off' , 'GridAlpha' , 1 , 'XTick' , [1:length(dayz)] , 'XTickLabel' , {'Day 1' , 'Day 2' , 'Day 3'},'YLim' , ylim)
-                    title([titleSuffix ,' - Model Crossvalidated R^2'])
+                bar(squeeze(pp_(:,plotIND , :))');
+                grid on
+                set(gca , 'FontSize' , 20 ,'Box' , 'off' , 'GridAlpha' , 1 , 'XTick' , [1:length(dayz)] , 'XTickLabel' , {'Day 1' , 'Day 2' , 'Day 3'},'YLim' , ylim)
+                title([titleSuffix ,' - Model Crossvalidated R^2'])
                 legend(cleanLabel)
                 
                 xp_ = reshape(cell2mat(xp_cor) , size(xp_cor{1} , 1) , size(xp_cor{1} , 2) , length(xp_cor));
                 pp_ = reshape(cell2mat(pp_cor) , size(pp_cor{1} , 1) , size(pp_cor{1} , 2) , length(pp_cor));
                 ep_ = reshape(cell2mat(ep_cor) , size(ep_cor{1} , 1) , size(ep_cor{1} , 2) , length(ep_cor));
                 
-                ylim = [min(min(min(pp_)))   max(max(max(pp_)))];
+                lo = min(min(min(pp_)));
+                hi = max(max(max(pp_)));
+                ylim = [1.1*lo   1.1*hi];
                 figure('color' , 'white')
                 
-                    bar(squeeze(pp_(:,plotIND , :))');
-                    grid on
-                    set(gca , 'FontSize' , 20 ,'Box' , 'off' , 'GridAlpha' , 1 , 'XTick' , [1:length(dayz)-1] , 'XTickLabel' , {'Day 1' , 'Day 2' , 'Day 3'},...
-                        'YLim' , ylim)
-                    title([titleSuffix , ' - Model Prediction - Output Correlation'])
+                bar(squeeze(pp_(:,plotIND , :))');
+                grid on
+                set(gca , 'FontSize' , 20 ,'Box' , 'off' , 'GridAlpha' , 1 , 'XTick' , [1:length(dayz)] , 'XTickLabel' , {'Day 1' , 'Day 2' , 'Day 3'},...
+                    'YLim' , ylim)
+                title([titleSuffix , ' - Model Prediction - Output Correlation'])
                 legend(cleanLabel)
         end
         
@@ -6362,7 +6366,7 @@ switch what
                 
                     bar(squeeze(pp_(:,plotIND , :))');
                     grid on
-                    set(gca , 'FontSize' , 20 ,'Box' , 'off' , 'GridAlpha' , 1 , 'XTick' , [1:length(legHor)-1] , 'XTickLabel' , {'Day 1' , 'Day 2' , 'Day 3'},...
+                    set(gca , 'FontSize' , 20 ,'Box' , 'off' , 'GridAlpha' , 1 , 'XTick' , [1:length(dayz)] , 'XTickLabel' , {'Day 1' , 'Day 2' , 'Day 3'},...
                         'YLim' , [-.1 .4])
                     title([titleSuffix , ' - Model Prediction - Output Correlation'])
                 legend(cleanLabel)
