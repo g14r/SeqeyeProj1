@@ -173,10 +173,8 @@ switch what
             hold on
             eval(['h' , num2str(h) , ' = plotshade([1:length(plotIND)] , pp_aic{dd}(h,plotIND) , ep_aic{dd}(h,plotIND),''transp'' , .2 , ''patchcolor'' , colors(h,:) , ''linecolor'' , colors(h,:) , ''linewidth'' , 3 , ''linestyle'' , '':'')']);
             hold on
-            
-            ylabel('correlation')
             set(gca , 'XLim' , [1 length(plotIND)+1],'XTick' , [1: length(plotIND)] , 'XTickLabels' , cleanLabel , 'FontSize' , 20 ,...
-                'XTickLabelRotation',45,'Box' , 'off' , 'GridAlpha' , 1)
+                'XTickLabelRotation',45,'Box' , 'off' , 'GridAlpha' , 1 , 'YLim' , [-2 16])
             title([titleSuffix , ' Model Relative AIC, Days ' , num2str(dayz{dd})])
             
             grid on
@@ -244,7 +242,7 @@ switch what
 
         bar(squeeze(pp_(i,plotIND , :))');
         set(gca , 'FontSize' , 20 ,'Box' , 'off' , 'GridAlpha' , 1 , 'XTick' , [1:length(dayz)] ,...
-            'YLim' , ylim,'XTickLabel' , {'Day 2' , 'Day 3' , 'Day 4'})
+            'YLim' , [0 110],'XTickLabel' , {'Day 2' , 'Day 3' , 'Day 4'})
         grid on
         title([titleSuffix , ' - Model Relative AIC']);
                 

@@ -2608,7 +2608,7 @@ switch what
         set(gca , 'FontSize' , 20 , 'XTick' , [0 1] , 'XTickLabels' , {'Between Structure' , 'Within Structure'},...
             'Box' , 'off');
         ylabel('Correlation Distance')
-        title('Within Vs. Between Structure Crossvalidated Dissimilarity')
+        Title('Within Vs. Between Structure Crossvalidated Dissimilarity')
         grid on
         out = [];
     case 'crossvaldist_vel'
