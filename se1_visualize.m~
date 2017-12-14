@@ -3361,7 +3361,7 @@ switch what
         K0.sn = K1.sn(id);
         for d = 2:length(dayz)
             K00 = tapply(K1 , {'CB' , 'sn'} , {'DigFixDur' , 'nanmean'} , 'subset' , ismember(K1.day , dayz{d}));
-            K00.day = (d+1)*ones(size(K00.CB));
+            K00.day = (d+1)*ones(size(K00.seqNumb));
             K0 = addstruct(K0 , K00);
             templab = K00.CB >1; % just test first vs rest
             temp = anovaMixed(K00.DigFixDur , K00.sn,'within', templab ,{'seqNumb'},'intercept',1)  ;
@@ -3383,7 +3383,7 @@ switch what
         K0.sn = K1.sn(id);
         for d = 2:length(dayz)
             K00 = tapply(K1 , {'CB' , 'sn'} , {'PB' , 'nanmean'} , 'subset' , ismember(K1.day , dayz{d}));
-            K00.day = (d+1)*ones(size(K00.CB));
+            K00.day = (d+1)*ones(size(K00.seqNumb));
             K0 = addstruct(K0 , K00);
             templab = K00.CB >1; % just test first vs rest
             temp = anovaMixed(K00.PB , K00.sn,'within', templab ,{'seqNumb'},'intercept',1)  ;
