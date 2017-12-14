@@ -607,20 +607,19 @@ switch what
         figure('color', 'white')
         h  =1;
         %             errorbar(cooIPI_sb(:,h) ,pltIPI_sb(:,h) , errIPI_sb(:,h) , 'LineWidth' , 3)
-        h1 = plotshade(cooIPI_sb(:,h)' ,pltIPI_sb(:,h)' , errIPI_sb(:,h)','transp' , .2 , 'patchcolor' , 'b' , 'linecolor' , 'b' , 'linewidth' , 3 , 'linestyle' , ':');
+        h1 = plotshade(cooIPI_sb(:,h)' ,pltIPI_sb(:,h)' , errIPI_sb(:,h)','transp' , .2 , 'patchcolor' , 'b' , 'linecolor' , 'b' , 'linewidth' , 5 , 'linestyle' , ':');
         hold on
 %         errorbar(cooIPI_sw(:,h) ,pltIPI_sw(:,h) , errIPI_sw(:,h), 'LineWidth' , 3)
-        h2 = plotshade(cooIPI_sw(:,h)' ,pltIPI_sw(:,h)' , errIPI_sw(:,h)','transp' , .2 , 'patchcolor' , 'r' , 'linecolor' , 'r' , 'linewidth' , 3 , 'linestyle' , ':');
+        h2 = plotshade(cooIPI_sw(:,h)' ,pltIPI_sw(:,h)' , errIPI_sw(:,h)','transp' , .2 , 'patchcolor' , 'r' , 'linecolor' , 'r' , 'linewidth' , 5 , 'linestyle' , ':');
 %         errorbar(cooIPI_r(:,h) ,pltIPI_r(:,h) , errIPI_r(:,h), 'LineWidth' , 3)
-        h3 = plotshade(cooIPI_r(:,h)' ,pltIPI_r(:,h)' , errIPI_r(:,h)','transp' , .2 , 'patchcolor' , 'g' , 'linecolor' , 'g' , 'linewidth' , 3 , 'linestyle' , ':');
-        set(gca , 'FontSize' ,20)
+        h3 = plotshade(cooIPI_r(:,h)' ,pltIPI_r(:,h)' , errIPI_r(:,h)','transp' , .2 , 'patchcolor' , 'g' , 'linecolor' , 'g' , 'linewidth' , 5 , 'linestyle' , ':');
         title(['Inter-Press Intervals'])
         ylabel('msec' )
         xlabel('Days')
-        set(gca ,'XTick' , [1:5], 'FontSize' , 20 , 'Box' , 'off' , 'XLim' , [1.5 4.5])
+        set(gca ,'XTick' , [1:5], 'FontSize' , 40 , 'Box' , 'off' , 'XLim' , [1.5 4.5], 'GridAlpha' , 1)
         grid on
         
-        legend([h1 h2 h3] , {'Between Chunks' 'Within Chunks' 'Random'})
+        legend([h1 h2 h3] , {'Between Segments' 'Within Segments' 'Random'} , 'Box' , 'off')
         
         
         for d = 2:4
@@ -651,27 +650,27 @@ switch what
             out.ChVsRand(d-1)  = temp.eff(2).p;
         end
         h1 = figure('color' , 'white');
-        [xcoords{d-1},PLOTs{d-1},ERRORs{d-1}] = lineplot(MT.Day, MT.MT , 'plotfcn' , 'nanmean' , 'subset' , MT.seqNumb == 1 );
+        [xcoords,PLOTs,ERRORs] = lineplot(MT.Day, MT.MT , 'plotfcn' , 'nanmean' , 'subset' , MT.seqNumb == 1 );
         hold on
-        [xcoordr{d-1},PLOTr{d-1},ERRORr{d-1}] = lineplot(MT.Day, MT.MT , 'plotfcn' , 'nanmean' , 'subset' , MT.seqNumb == 0 );
+        [xcoordr,PLOTr,ERRORr] = lineplot(MT.Day, MT.MT , 'plotfcn' , 'nanmean' , 'subset' , MT.seqNumb == 0 & ~ismember(MT.Day , 1));
         close(h1);
         
         
         
         figure('color' , 'white');
         
-        h1 = plotshade(xcoords{d-1}',PLOTs{d-1} , ERRORs{d-1},'transp' , .2 , 'patchcolor' , 'b' , 'linecolor' , 'b' , 'linewidth' , 3 , 'linestyle' , ':');
+        h1 = plotshade(xcoords',PLOTs , ERRORs,'transp' , .2 , 'patchcolor' , 'b' , 'linecolor' , 'b' , 'linewidth' , 5 , 'linestyle' , ':');
         hold on
-        h2 = plotshade(xcoordr{d-1}',PLOTr{d-1} , ERRORr{d-1},'transp' , .2 , 'patchcolor' , 'r' , 'linecolor' , 'r' , 'linewidth' , 3 , 'linestyle' , ':');
-        set(gca,'FontSize' , 20 , 'XLim' , [0 5] , 'XTick' , [1:4] , 'Box' , 'off');
+        h2 = plotshade(xcoordr',PLOTr , ERRORr,'transp' , .2 , 'patchcolor' , 'g' , 'linecolor' , 'g' , 'linewidth' , 5 , 'linestyle' , ':');
+        set(gca,'FontSize' , 40 , 'XLim' , [1 5] , 'XTick' , [2:4] , 'Box' , 'off' , 'GridAlpha' , 1);
         title('Execution Time')
         ylabel('msec' )
         xlabel('Days' )
-        legend([h1 h2] ,{'Chunked' , 'Random'})
+        legend([h1 h2] ,{'Structured Sequences' , 'Random Sequences'})
         grid on
     case 'Errors'
         errorrate = [];
-        for d = 2:5
+        for d = 2:4
             for sub = subjnum
                 ANA = getrow(Dall , ismember(Dall.SN , sub) & ismember(Dall.seqNumb , [1:6]) & Dall.isgood & ismember(Dall.Rep , rep) & ismember(Dall.Day , days{d}));
                 errorrate = [errorrate ; [100 * sum(ANA.isError)/length(ANA.TN) , d , sub ,1]];
@@ -688,18 +687,17 @@ switch what
         close(h1);
         
         figure('color' , 'white')
-        errorbar(PLOTs , ERRORs, 'LineWidth' , 3);
+%         errorbar(PLOTs , ERRORs, 'LineWidth' , 3);
+%         hold on
+%         errorbar(PLOTr , ERRORr, 'LineWidth' , 3);
+        h1 = plotshade(xcoord',PLOTs,ERRORs,'transp' , .2 , 'patchcolor' , 'b' , 'linecolor' , 'b' , 'linewidth' , 5 , 'linestyle' , ':');
         hold on
-        errorbar(PLOTr , ERRORr, 'LineWidth' , 3);
+        h2 = plotshade(xcoord',PLOTr,ERRORr,'transp' , .2 , 'patchcolor' , 'g' , 'linecolor' , 'g' , 'linewidth' , 5 , 'linestyle' , ':');
+        set(gca,'FontSize' , 40 , 'XLim' , [1 5] , 'XTick' , [2:4] , 'Box' , 'off' , 'GridAlpha' , 1);
         grid on
         ylabel('Percent')
-        title(['Error rate , p = ' ,  num2str(out.Err.eff(2).p)])
-        hold on
-        ax = gca;
-        ax.XTick = [1:4];
-        ax.XTickLabel = {'Day 1' , 'Day2' , 'Day 3' , 'All Days'};
-        ax.FontSize = 20;
-        legend({'Chunked' , 'Random'});
+        title(['Error rate'])
+        legend([h1 , h2] , {'Structured Sequences' , 'Random Sequences'});
     case 'chunk_dist' % CityBlock
         %% chunk distances
         ANA = getrow(Dall , ismember(Dall.SN , subjnum) & Dall.isgood & ismember(Dall.Rep , rep) & ismember(Dall.Day , days{day}));
