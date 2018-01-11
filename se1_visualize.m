@@ -3253,7 +3253,7 @@ switch what
         
        
 
-        
+        clear K0 K00
         K1 = K_rand_chnk;
         h = figure('color' , 'white');
         subplot(411)
@@ -3281,8 +3281,9 @@ switch what
         title(['Weighted Average Fixation Duration  - Days 2 , 3 , 4'])
         xlabel('Structure number')
         ylabel('weighted ms')
-        legend({['Day 1 P = ' , num2str(out.rand_chnk(1))] , ['Day 2 P = ' , num2str(out.rand_chnk(2))], ['Day 3 P = ' , num2str(out.rand_chnk(3))]})
+        legend({['Day 2 P = ' , num2str(out.rand_chnk(1))] , ['Day 3 P = ' , num2str(out.rand_chnk(2))], ['Day 4 P = ' , num2str(out.rand_chnk(3))]})
         %========================================= Preview
+        clear K0 K00
         subplot(412)
         id = K1.day == 2;
         K0.day = K1.day(id) ;
@@ -3307,8 +3308,9 @@ switch what
         set(gca , 'FontSize' , 20)
         title(['Amount Looking Ahead - Days 2 , 3 , 4'])
         xlabel('Structure number')
-        legend({['Day 1 P = ' , num2str(out.rand_chnk(1))] , ['Day 2 P = ' , num2str(out.rand_chnk(2))], ['Day 3 P = ' , num2str(out.rand_chnk(3))]})
+        legend({['Day 2 P = ' , num2str(out.rand_chnk(1))] , ['Day 3 P = ' , num2str(out.rand_chnk(2))], ['Day 4 P = ' , num2str(out.rand_chnk(3))]})
         %========================================= Saccade per second
+        clear K0 K00
         subplot(413)
         id = K1.day ==2;
         K0.day = K1.day(id) ;
@@ -3333,8 +3335,9 @@ switch what
         ylabel('Saccade per sec')
         title(['Saccade rate  - Days 2 , 3 , 4'])
         xlabel('Structure number')
-        legend({['Day 1 P = ' , num2str(out.rand_chnk(1))] , ['Day 2 P = ' , num2str(out.rand_chnk(2))], ['Day 3 P = ' , num2str(out.rand_chnk(3))]})
+        legend({['Day 2 P = ' , num2str(out.rand_chnk(1))] , ['Day 3 P = ' , num2str(out.rand_chnk(2))], ['Day 4 P = ' , num2str(out.rand_chnk(3))]})
         %========================================= Saccade amplitude
+        clear K0 K00
         subplot(414)
         id = K1.day == 2;
         K0.day = K1.day(id) ;
@@ -3358,13 +3361,15 @@ switch what
         set(gca , 'FontSize' , 20)
         title(['Sccade Amplitude - Days 2 , 3 , 4'])
         xlabel('Structure number')
-        legend({['Day 1 P = ' , num2str(out.rand_chnk(1))] , ['Day 2 P = ' , num2str(out.rand_chnk(2))], ['Day 3 P = ' , num2str(out.rand_chnk(3))]})
+        legend({['Day 2 P = ' , num2str(out.rand_chnk(1))] , ['Day 3 P = ' , num2str(out.rand_chnk(2))], ['Day 4 P = ' , num2str(out.rand_chnk(3))]})
         ylabel('Digits')
        
         
         
+        
+        %% within chunked
+        clear K0 K00
         K1 = K_withinChunk;
-        % within chunked
         h = figure('color' , 'white');
         subplot(211)
         id = K1.day == 2;
@@ -3372,14 +3377,14 @@ switch what
         K0.DigFixDur = K1.DigFixDur(id);
         K0.CB  = K1.CB(id);
         K0.sn = K1.sn(id);
-        templab = K0.CB ~= 2; % just test middle vs rest
+        templab = K0.CB ; % just test middle vs rest
         temp = anovaMixed(K0.DigFixDur , K0.sn,'within', templab ,{'seqNumb'},'intercept',1)  ;
         out.withinChunk(1) = temp.eff(2).p;
         for d = 2:length(dayz)
             K00 = tapply(K1 , {'CB' , 'sn'} , {'DigFixDur' , 'nanmean'} , 'subset' , ismember(K1.day , dayz{d}));
             K00.day = (d+1)*ones(size(K00.CB));
             K0 = addstruct(K0 , K00);
-            templab = K00.CB ~= 2; % just test middle vs rest
+            templab = K00.CB ; % just test middle vs rest
             temp = anovaMixed(K00.DigFixDur , K00.sn,'within', templab ,{'seqNumb'},'intercept',1)  ;
             out.withinChunk(d) = temp.eff(2).p;
         end
@@ -3387,25 +3392,26 @@ switch what
         [xDur,pDur,eDur] = lineplot([K0.day , K0.CB] ,  K0.DigFixDur , 'plotfcn' , 'nanmean','style_thickline');
         grid on
         set(gca , 'FontSize' , 20)
-        title(['Average Fixation Duration in Horizon(s)  - Days 2 , 3 , 4'])
+        title('Average Fixation Duration  - Days 2 , 3 , 4')
         xlabel('Segment Placement - 1: first      2: within    3: Last')
         legend({['Day 1 P = ' , num2str(out.withinChunk(1))] , ['Day 2 P = ' , num2str(out.withinChunk(2))], ['Day 3 P = ' , num2str(out.withinChunk(3))]})
         ylabel('Weighted ms')
         %========================================= Preview
          subplot(212)
+         clear K0 K00
         id = K1.day == 2;
         K0.day = K1.day(id) ;
         K0.PB = K1.PB(id);
         K0.CB  = K1.CB(id);
         K0.sn = K1.sn(id);
-        templab = K0.CB ~= 3; % just test middle vs rest
+        templab = K0.CB; % just test middle vs rest
         temp = anovaMixed(K0.PB , K0.sn,'within', templab ,{'seqNumb'},'intercept',1)  ;
         out.withinChunk(1) = temp.eff(2).p;
         for d = 2:length(dayz)
             K00 = tapply(K1 , {'CB' , 'sn'} , {'PB' , 'nanmean'} , 'subset' , ismember(K1.day , dayz{d}));
             K00.day = (d+1)*ones(size(K00.CB));
             K0 = addstruct(K0 , K00);
-            ttemplab = K00.CB ~= 3; % just test middle vs rest
+            ttemplab = K00.CB; % just test middle vs rest
             temp = anovaMixed(K00.PB , K00.sn,'within', templab ,{'seqNumb'},'intercept',1)  ;
             out.withinChunk(d) = temp.eff(2).p;
         end
@@ -3413,7 +3419,7 @@ switch what
         [xDur,pDur,eDur] = lineplot([K0.day , K0.CB] ,  -K0.PB , 'plotfcn' , 'nanmean','style_thickline');
         grid on
         set(gca , 'FontSize' , 20)
-        title(['Looking ahead - Days 2 , 3 , 4'])
+        title('Looking ahead - Days 2 , 3 , 4')
         xlabel('Segment Placement - 1: first      2: within    3: Last')
         ylabel('Digits')
         legend({['Day 1 P = ' , num2str(out.withinChunk(1))] , ['Day 2 P = ' , num2str(out.withinChunk(2))], ['Day 3 P = ' , num2str(out.withinChunk(3))]})
