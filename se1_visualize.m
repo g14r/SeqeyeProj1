@@ -58,8 +58,8 @@ function out  = se1_visualize(Dall , subjnum, what, distance, calc , day , rep, 
 %%
 
 prefix = 'se1_';
-% baseDir = '/Users/nedakordjazi/Documents/SeqEye/SeqEye1/analyze';
-baseDir = '/Users/nkordjazi/Documents/SeqEye/SeqEye1/analyze';
+baseDir = '/Users/nedakordjazi/Documents/SeqEye/SeqEye1/analyze';
+% baseDir = '/Users/nkordjazi/Documents/SeqEye/SeqEye1/analyze';
 subj_name = {'SZ1','JN2' ,'SP1','AT1','DW1','KL1','JG1','GP1','SK1' ,'NM1','VR1','PB1' , 'XX1'};
 if subjnum == length(subj_name)
     %     subjnum = [1 3:length(subj_name)-1];
@@ -3162,19 +3162,25 @@ switch what
                 ANA.ChunkBndry(tn , ANA.ChunkBndry(tn , :) == 0) = 2;
                 ANA.ChunkBndry(tn , 1:ignorDig+1) = [-1 -1 -1];  % dont account for the first and last sseqeuce presses
                 ANA.ChunkBndry(tn , end-ignorDig:end) = [-1 -1 -1];% dont account for the first and last sseqeuce presses
-                ANA.DigFixWeight(tn , :) = zeros(1 ,14);
+                ANA.DigFixWeighted(tn , :) = zeros(1 ,14);
                 
                 
                 if isSymmetric
-                    window = 12;
-                    ANA.EyeFixDigit{tn , 1} = ANA.xEyePosDigit{tn}((ANA.AllPressIdx(tn , 1)+2)-window :ANA.AllPressIdx(tn , ANA.seqlength(tn)) + 2 + window) .* ANA.SaccFlag{tn};
+                    window = 50; %samples = 100ms
                     for p = 1:14
-                        id = ANA.EyeFixDigit{tn , 1}<=p+.5 & ANA.EyeFixDigit{tn , 1}>p-.5;
-                        %                         ANA.EyeFixDigit{tn , 1}(id) = p;
+                        id = ANA.xEyePosDigit{tn , 1}<=p+.5 & ANA.xEyePosDigit{tn , 1}>p-.5;
                         if sum(id)
-                            ANA.DigFixWeight(tn , p) = (sum(abs(1- (ANA.EyeFixDigit{tn , 1}(id) - p)))/sum(id))*(sum(id)/500);
+                            ANA.DigFixWeighted(tn , p) = mean(abs(ANA.xEyePosDigit{tn , 1}(id) - p))*(sum(id)/500)*1000;
                         else
-                            ANA.DigFixWeight(tn , p) = 0;
+                            ANA.DigFixWeighted(tn , p) = 0;
+                        end
+                        id = [ANA.AllPressIdx(tn , p) - window :ANA.AllPressIdx(tn , p) + window];
+                        if id(1) > length(ANA.xEyePosDigit{tn}) | sum(id<0)>0
+                             ANA.EyePressTimePos(tn , p) = NaN;
+                        elseif id(end)>length(ANA.xEyePosDigit{tn})
+                            ANA.EyePressTimePos(tn , p) = nanmedian(ANA.xEyePosDigit{tn}(id(1):end));
+                        else
+                            ANA.EyePressTimePos(tn , p) = nanmedian(ANA.xEyePosDigit{tn}(id));
                         end
                     end
                 end
@@ -3194,7 +3200,7 @@ switch what
                 eyeinfo.sacPeakVel = [eyeinfo.sacPeakVel ; mean(ANA.SaccPeakVel{tn})*ones(count , 1)];
                 eyeinfo.sacAmp     = [eyeinfo.sacAmp ; mean(ANA.SaccAmplitude{tn})*ones(count , 1)];
                 eyeinfo.seqNumb    = [eyeinfo.seqNumb ; ANA.seqNumb(tn)*ones(count , 1)];
-                eyeinfo.DigFixDur  = [eyeinfo.DigFixDur ;ANA.DigFixWeight(tn ,goodid)'];
+                eyeinfo.DigFixDur  = [eyeinfo.DigFixDur ;ANA.DigFixWeighted(tn ,goodid)'];
             end
             K_withinChunk = tapply(eyeinfo , {'day' , 'sn','CB'} , {'sacDur' , 'nanmedian'}, {'DigFixDur' , 'nanmedian'},...
                 {'sacAmp' , 'nanmedian'} , {'sacPerSec' , 'nanmedian'}, {'PB' , 'nanmedian'} , 'subset' ,...
@@ -3211,44 +3217,37 @@ switch what
         else
             load([baseDir , '/se1_eyeInfo.mat'])
         end
-        
+         ANA = getrow(Dall ,ismember(Dall.seqNumb , [0:6]) & ismember(Dall.SN , subjnum) & ismember(Dall.Day , [2 3 4]) & Dall.isgood & ~Dall.isError & cellfun(@length , Dall.xEyePosDigit)>1 & Dall.Group == 1);
         h = figure;
+        dayz = {[2] , [3] , [4]};
         for sqn = 0:6
-            [xDur,pDur,eDur] = lineplot([K_sqnum.day , K_sqnum.prsnumb] ,  K_sqnum.DigFixDur , 'plotfcn' , 'nanmean','subset' ,...
-               ismember(K_sqnum.seqNumb , sqn) , 'style_shade');
-            xs(sqn + 1 , :,:) = reshape(xDur , 13,3);
-            ps(sqn + 1 , :,:) = reshape(pDur , 13,3);
-            es(sqn + 1 , :,:) = reshape(eDur , 13,3);
+            for dd = 1:length(dayz)
+            [xDur{sqn+1,dd},pDur{sqn+1,dd},eDur{sqn+1,dd}] = lineplot([K_sqnum.prsnumb] ,  K_sqnum.DigFixDur , 'plotfcn' , 'nanmean','subset' ,...
+               ismember(K_sqnum.seqNumb , sqn) & ismember(K_sqnum.day , dayz{dd}), 'style_shade');
+            end
         end
         close(h)
         
         h = figure('color' , 'white');
-        dayz = {[2] , [3] , [4]};
+        
         for sqn = 0:6
             chnkpl = unique(ANA.ChnkPlcmnt(ANA.seqNumb == sqn , :) , 'rows');
             subplot(7 , 1 , sqn+1);
             for d = 1:length(dayz)
-                if length(dayz{d})>1
-                    pX = mean(squeeze(ps(sqn+1,:,dayz{d}-1)),2);
-                    eX = mean(squeeze(es(sqn+1,:,dayz{d}-1)),2);
-                else
-                    pX = squeeze(ps(sqn+1,:,dayz{d}-1));
-                    eX = squeeze(es(sqn+1,:,dayz{d}-1));
-                end
-                errorbar([2:14]' , pX , eX , 'LineWidth' , 3);
+                errorbar(xDur{sqn+1,d}' , pDur{sqn+1,d},eDur{sqn+1,d} , 'LineWidth' , 3);
                 hold on
                 
             end
             firsts = find(chnkpl == 1);
             for j = 1:length(firsts)
-                line([firsts(j) firsts(j)] , [0 0.6] , 'LineWidth'  ,2 , 'color' , 'black')
+                line([firsts(j) firsts(j)] , [0 300] , 'LineWidth'  ,2 , 'color' , 'black')
             end
-            
+            xlabel('Digits')
             
             grid on
             
-            set(gca , 'YLim' , [0 0.6] , 'XTick' , [2:14] , 'XLim' , [1 15])
-            legend({'day 2' , 'days 3' , 'days 4'})
+            set(gca , 'FontSize' , 16, 'XTick' , [1:13] , 'XLim' , [0 14])
+            legend({'day 2' , 'day 3' , 'day 4'})
             title(['Fixation Duration on Digits on stucure ' , num2str(sqn)])
         end
         
@@ -3263,7 +3262,9 @@ switch what
         K0.DigFixDur = K1.DigFixDur(id);
         K0.seqNumb  = K1.seqNumb(id);
         K0.sn = K1.sn(id);
-        
+        templab = K0.seqNumb >0; % just test Random vs all structured
+        temp = anovaMixed(K0.DigFixDur , K0.sn,'within', templab,{'seqNumb'},'intercept',1)  ;
+        out.rand_chnk(1) = temp.eff(2).p;
         for d = 2:length(dayz)
             K00 = tapply(K1 , {'seqNumb' , 'sn'} , {'DigFixDur' , 'nanmean'} , 'subset' , ismember(K1.day , dayz{d}));
             K00.day = (d+1)*ones(size(K00.seqNumb));
@@ -3271,44 +3272,55 @@ switch what
             templab = K00.seqNumb >0; % just test Random vs all structured
             temp = anovaMixed(K00.DigFixDur , K00.sn,'within', templab,{'seqNumb'},'intercept',1)  ;
             out.rand_chnk(d) = temp.eff(2).p;
+            clear K00
         end
         % between random and chunked
         [xDur,pDur,eDur] = lineplot([K0.day , K0.seqNumb] ,  K0.DigFixDur , 'plotfcn' , 'nanmean','style_thickline');
         
         grid on
         set(gca , 'FontSize' , 20)
-        title(['Average Fixation Duration in Horizon(s)  - Days 2 , 3 , 4'])
+        title(['Weighted Average Fixation Duration  - Days 2 , 3 , 4'])
         xlabel('Structure number')
-        legend({'-' , num2str(out.rand_chnk(2)), num2str(out.rand_chnk(3))})
+        ylabel('weighted ms')
+        legend({['Day 2 P = ' , num2str(out.rand_chnk(1))] , ['Day 3 P = ' , num2str(out.rand_chnk(2))], ['Day 4 P = ' , num2str(out.rand_chnk(3))]})
         %========================================= Preview
+        clear K0 K00
         subplot(412)
         id = K1.day == 2;
         K0.day = K1.day(id) ;
         K0.PB = K1.PB(id);
         K0.seqNumb  = K1.seqNumb(id);
         K0.sn = K1.sn(id);
+        templab = K0.seqNumb >0; % just test Random vs all structured
+        temp = anovaMixed(K0.PB , K0.sn,'within',templab,{'seqNumb'},'intercept',1)  ;
+        out.rand_chnk(1) = temp.eff(2).p;
         for d = 2:length(dayz)
             K00 = tapply(K1 , {'seqNumb' , 'sn'} , {'PB' , 'nanmean'} , 'subset' , ismember(K1.day , dayz{d}) );
             K00.day = (d+1)*ones(size(K00.seqNumb));
             K0 = addstruct(K0 , K00);
-             templab = K00.seqNumb >0; % just test Random vs all structured
+            templab = K00.seqNumb >0; % just test Random vs all structured
             temp = anovaMixed(K00.PB , K00.sn,'within',templab,{'seqNumb'},'intercept',1)  ;
             out.rand_chnk(d) = temp.eff(2).p;
         end
         % between random and chunked
         [xDur,pDur,eDur] = lineplot([K0.day , K0.seqNumb] ,  -K0.PB , 'plotfcn' , 'nanmean','style_thickline');
+        ylabel('Digits')
         grid on
         set(gca , 'FontSize' , 20)
-        title(['Amount Looking Ahead in Horizon(s)  - Days 2 , 3 , 4'])
+        title(['Amount Looking Ahead - Days 2 , 3 , 4'])
         xlabel('Structure number')
-        legend({'-' , num2str(out.rand_chnk(2)), num2str(out.rand_chnk(3))})
+        legend({['Day 2 P = ' , num2str(out.rand_chnk(1))] , ['Day 3 P = ' , num2str(out.rand_chnk(2))], ['Day 4 P = ' , num2str(out.rand_chnk(3))]})
         %========================================= Saccade per second
+        clear K0 K00
         subplot(413)
         id = K1.day ==2;
         K0.day = K1.day(id) ;
         K0.sacPerSec = K1.sacPerSec(id);
         K0.seqNumb  = K1.seqNumb(id);
         K0.sn = K1.sn(id);
+        templab = K0.seqNumb >0; % just test Random vs all structured
+        temp = anovaMixed(K0.sacPerSec , K0.sn,'within', templab,{'seqNumb'},'intercept',1)  ;
+        out.rand_chnk(1) = temp.eff(2).p;
         for d = 2:length(dayz)
             K00 = tapply(K1 , {'seqNumb' , 'sn'} , {'sacPerSec' , 'nanmean'} , 'subset' , ismember(K1.day , dayz{d}));
             K00.day = (d+1)*ones(size(K00.seqNumb));
@@ -3321,16 +3333,21 @@ switch what
         [xDur,pDur,eDur] = lineplot([K0.day , K0.seqNumb] ,  K0.sacPerSec , 'plotfcn' , 'nanmean','style_thickline');
         grid on
         set(gca , 'FontSize' , 20)
-        title(['Sccade Per Second in Horizon(s)  - Days 2 , 3 , 4'])
+        ylabel('Saccade per sec')
+        title(['Saccade rate  - Days 2 , 3 , 4'])
         xlabel('Structure number')
-        legend({'-' , num2str(out.rand_chnk(2)), num2str(out.rand_chnk(3))})
+        legend({['Day 2 P = ' , num2str(out.rand_chnk(1))] , ['Day 3 P = ' , num2str(out.rand_chnk(2))], ['Day 4 P = ' , num2str(out.rand_chnk(3))]})
         %========================================= Saccade amplitude
+        clear K0 K00
         subplot(414)
         id = K1.day == 2;
         K0.day = K1.day(id) ;
         K0.sacAmp = K1.sacAmp(id);
         K0.seqNumb  = K1.seqNumb(id);
         K0.sn = K1.sn(id);
+        templab = K0.seqNumb >0; % just test Random vs all structured
+        temp = anovaMixed(K0.sacAmp , K0.sn,'within', templab,{'seqNumb'},'intercept',1)  ;
+        out.rand_chnk(1) = temp.eff(2).p;
         for d = 2:length(dayz)
             K00 = tapply(K1 , {'seqNumb' , 'sn'} , {'sacAmp' , 'nanmean'} , 'subset' , ismember(K1.day , dayz{d}));
             K00.day = (d+1)*ones(size(K00.seqNumb));
@@ -3343,15 +3360,16 @@ switch what
         [xDur,pDur,eDur] = lineplot([K0.day , K0.seqNumb] ,  K0.sacAmp , 'plotfcn' , 'nanmean','style_thickline');
         grid on
         set(gca , 'FontSize' , 20)
-        title(['Sccade Amplitude in Horizon(s) - Days 2 , 3 , 4'])
+        title(['Sccade Amplitude - Days 2 , 3 , 4'])
         xlabel('Structure number')
-        legend({'-' , num2str(out.rand_chnk(2)), num2str(out.rand_chnk(3))})
-        
+        legend({['Day 2 P = ' , num2str(out.rand_chnk(1))] , ['Day 3 P = ' , num2str(out.rand_chnk(2))], ['Day 4 P = ' , num2str(out.rand_chnk(3))]})
+        ylabel('Digits')
        
         
-        
+        %% within chunked
+        clear K0 K00
         K1 = K_withinChunk;
-        % within chunked
+       
         h = figure('color' , 'white');
         subplot(211)
         id = K1.day == 2;
@@ -3359,11 +3377,14 @@ switch what
         K0.DigFixDur = K1.DigFixDur(id);
         K0.CB  = K1.CB(id);
         K0.sn = K1.sn(id);
+        templab = K0.CB; % just test middle vs rest
+        temp = anovaMixed(K0.DigFixDur , K0.sn,'within', templab ,{'seqNumb'},'intercept',1)  ;
+        out.withinChunk(1) = temp.eff(2).p;
         for d = 2:length(dayz)
             K00 = tapply(K1 , {'CB' , 'sn'} , {'DigFixDur' , 'nanmean'} , 'subset' , ismember(K1.day , dayz{d}));
             K00.day = (d+1)*ones(size(K00.CB));
             K0 = addstruct(K0 , K00);
-            templab = K00.CB >1; % just test first vs rest
+            templab = K00.CB; % just test middle vs rest
             temp = anovaMixed(K00.DigFixDur , K00.sn,'within', templab ,{'seqNumb'},'intercept',1)  ;
             out.withinChunk(d) = temp.eff(2).p;
         end
@@ -3371,21 +3392,26 @@ switch what
         [xDur,pDur,eDur] = lineplot([K0.day , K0.CB] ,  K0.DigFixDur , 'plotfcn' , 'nanmean','style_thickline');
         grid on
         set(gca , 'FontSize' , 20)
-        title(['Average Fixation Duration in Horizon(s)  - Days 2 , 3 , 4'])
-        xlabel('Chunk Placement')
-        legend({'-' , num2str(out.withinChunk(2)), num2str(out.withinChunk(3))})
+        title(['Average Fixation Duration  - Days 2 , 3 , 4'])
+        xlabel('Segment Placement - 1: first      2: within    3: Last')
+        legend({['Day 2 P = ' , num2str(out.withinChunk(1))] , ['Day 3 P = ' , num2str(out.withinChunk(2))], ['Day 4 P = ' , num2str(out.withinChunk(3))]})
+        ylabel('Weighted ms')
         %========================================= Preview
+        clear K0 K00
          subplot(212)
         id = K1.day == 2;
         K0.day = K1.day(id) ;
         K0.PB = K1.PB(id);
         K0.CB  = K1.CB(id);
         K0.sn = K1.sn(id);
+        templab = K0.CB; % just test middle vs rest
+        temp = anovaMixed(K0.PB , K0.sn,'within', templab ,{'seqNumb'},'intercept',1)  ;
+        out.withinChunk(1) = temp.eff(2).p;
         for d = 2:length(dayz)
             K00 = tapply(K1 , {'CB' , 'sn'} , {'PB' , 'nanmean'} , 'subset' , ismember(K1.day , dayz{d}));
             K00.day = (d+1)*ones(size(K00.CB));
             K0 = addstruct(K0 , K00);
-            templab = K00.CB >1; % just test first vs rest
+            ttemplab = K00.CB; % just test middle vs rest
             temp = anovaMixed(K00.PB , K00.sn,'within', templab ,{'seqNumb'},'intercept',1)  ;
             out.withinChunk(d) = temp.eff(2).p;
         end
@@ -3393,9 +3419,10 @@ switch what
         [xDur,pDur,eDur] = lineplot([K0.day , K0.CB] ,  -K0.PB , 'plotfcn' , 'nanmean','style_thickline');
         grid on
         set(gca , 'FontSize' , 20)
-        title(['Preview in Horizon(s) - Days 2 , 3 , 4'])
-        xlabel('Chunk Placement')
-        legend({'-' , num2str(out.withinChunk(2)), num2str(out.withinChunk(3))})
+        title(['Looking ahead - Days 2 , 3 , 4'])
+        xlabel('Segment Placement - 1: first      2: within    3: Last')
+        ylabel('Digits')
+        legend({['Day 2 P = ' , num2str(out.withinChunk(1))] , ['Day 3 P = ' , num2str(out.withinChunk(2))], ['Day 4 P = ' , num2str(out.withinChunk(3))]})
     case 'saccs_Singlesubj'
         SNu = [1 3 4 5 6 7 8 9 10];
         for subjnum = 1:length(SNu)
