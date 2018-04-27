@@ -1183,7 +1183,7 @@ switch what
         grid on
         xlabel('Finger Press' , 'FontSize' , 20)
         ylabel('Eye Position' , 'FontSize' , 20)
-        title(['The Average Time Normalized Eye Position vs. Finger Press Time series - Subject ' , num2str(subjnum)] , 'FontSize' , 20)
+        title(['The Average Time Normalized Eye Position vs. Finger Press Time series - Subject ' , num2str(subjnum) ,' ,Day(s) ' , num2str(day)], 'FontSize' , 20)
         legend({ 'Structure 1','Structure 2','Structure 3','Structure 4','Structure 5','Structure 6' 'Random'} , 'FontSize' , 20)
         hold on
         ax = gca;
@@ -1204,7 +1204,7 @@ switch what
         plot(out.pressPattern(1 , :)' , 'LineWidth' , 5 , 'color' , 'black')
         xlabel('Normalized time' , 'FontSize' , 20)
         ylabel('Press Position' , 'FontSize' , 20)
-        title(['The Average Time Normalized Finger Press Time series - Subject ' , num2str(subjnum)] , 'FontSize' , 20)
+        title(['The Average Time Normalized Finger Press Time series - Subject ' , num2str(subjnum),' ,Day(s) ' , num2str(day)], 'FontSize' , 20)
         %         legend({ 'Structure 1','Structure 2','Structure 3','Structure 4','Structure 5','Structure 6' 'Random'} , 'FontSize' , 20)
         
         ax = gca;
@@ -1221,7 +1221,7 @@ switch what
         grid on
         xlabel('Normalized time' , 'FontSize' , 20)
         ylabel('Eye Position' , 'FontSize' , 20)
-        title(['The Average Time Normalized Eye Position Time series - Subject ' , num2str(subjnum)] , 'FontSize' , 20)
+        title(['The Average Time Normalized Eye Position Time series - Subject ' , num2str(subjnum) ,' ,Day(s) ' , num2str(day)], 'FontSize' , 20)
         %         legend({ 'Structure 1','Structure 2','Structure 3','Structure 4','Structure 5','Structure 6' 'Random'} , 'FontSize' , 20)
         
         ax = gca;
@@ -1239,7 +1239,7 @@ switch what
         grid on
         xlabel('Normalized time' , 'FontSize' , 20)
         ylabel('Eye Position' , 'FontSize' , 20)
-        title(['The Average Last 10% Eye Position Time series - Subject ' , num2str(subjnum)] , 'FontSize' , 20)
+        title(['The Average Last 10% Eye Position Time series - Subject ' , num2str(subjnum) ,' ,Day(s) ' , num2str(day)], 'FontSize' , 20)
         ax = gca;
         ax.FontSize = 20;
         ax.Box = 'off';
@@ -1253,7 +1253,7 @@ switch what
         grid on
         xlabel('Normalized time' , 'FontSize' , 20)
         ylabel('Eye Position' , 'FontSize' , 20)
-        title(['The Average First 10% Eye Position Time series - Subject ' , num2str(subjnum)] , 'FontSize' , 20)
+        title(['The Average First 10% Eye Position Time series - Subject ' , num2str(subjnum) ,' ,Day(s) ' , num2str(day)], 'FontSize' , 20)
         legend({ 'Structure 1','Structure 2','Structure 3','Structure 4','Structure 5','Structure 6' 'Random'} , 'FontSize' , 20)
         ax = gca;
         ax.XLim = [1 100];
