@@ -11,14 +11,25 @@ out  = se1_pubFigs(Dall , 'RT','RandvsStructCommpare');
 out  = se1_pubFigs(Dall , 'RT','Segments' , 'poolDays' , 0);
 
 
+
+
+
+
+
+
+
 out  = se1_pubFigs(Dall , 'Eye', 'sacDurSplitDay' , 'isSymmetric' , 1 , 'poolDays' , 0);
+out  = se1_pubFigs(Dall , 'Eye', 'sacDurSplitseqType' , 'isSymmetric' , 1 , 'poolDays' , 0);
 out  = se1_pubFigs(Dall , 'Eye', 'sacAmpSplitDay' , 'isSymmetric' , 1 , 'poolDays' , 0);
+out  = se1_pubFigs(Dall , 'Eye', 'sacAmpSplitseqType' , 'isSymmetric' , 1 , 'poolDays' , 0);
 out  = se1_pubFigs(Dall , 'Eye', 'sacFreqSplitDay' , 'isSymmetric' , 1 , 'poolDays' , 0);
+out  = se1_pubFigs(Dall , 'Eye', 'sacFreqSplitseqType' , 'isSymmetric' , 1 , 'poolDays' , 0);
 
 out  = se1_pubFigs(Dall , 'Eye', 'FixDurSplitipitype' , 'isSymmetric' , 1 , 'poolDays' , 0);
-out  = se1_pubFigs(Dall , 'Eye', 'previewSplitipitype' , 'isSymmetric' , 1 , 'poolDays' , 0);
+out  = se1_pubFigs(Dall , 'Eye', 'FixDurSplitwindow' , 'isSymmetric' , 1 , 'poolDays' , 0);
 
 out  = se1_pubFigs(Dall , 'Eye', 'EyePrsTimePos' , 'isSymmetric' , 1 , 'poolDays' , 0);
+out  = se1_pubFigs(Dall , 'Eye', 'previewSplitipitype' , 'isSymmetric' , 1 , 'poolDays' , 0);
 
 
 %% significance test recipes
@@ -26,9 +37,9 @@ out  = se1_pubFigs(Dall , 'Eye', 'EyePrsTimePos' , 'isSymmetric' , 1 , 'poolDays
 
 
 %% significance test on MTs
-stats = se1_SigTest(Dall , 'MT' , 'seqNumb' , [0:6] , 'Day' , [4] ,...
-    'whatIPI','WithBetRand','PoolSequences' , 0 ,...
-    'ipiOfInterest' , [] , 'poolIPIs' , 0 , 'subjnum' , [1:12]);
+stats = se1_SigTest(Dall , 'MT' , 'seqNumb' , [0:2] , 'Day' , [5] , 'Horizon' , [1:13],...
+    'PoolDays' , 1,'whatIPI','WithBetRand','PoolSequences' , 0 ,...
+    'PoolHorizons' , [5:13],'ipiOfInterest' , [] , 'poolIPIs' , 0 , 'subjnum' , [1:13]);
 
 %% significance test on IPIs
 stats = se1_SigTest(Dall , 'IPI' , 'seqNumb' , [0:2] , 'Day' , [1:5] , 'Horizon' , [1:13],...
