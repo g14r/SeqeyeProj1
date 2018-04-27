@@ -108,121 +108,123 @@ end
 
 
 
-
+out = [];
 switch what
     
     case 'MT'
-        ANA = getrow(Dall , Dall.isgood & ismember(Dall.seqNumb , [0 1 2]) & ~Dall.isError);
+        ANA = getrow(Dall , Dall.isgood & ismember(Dall.seqNumb , [0 1:6]) & ~Dall.isError);
         ANA.seqNumb(ANA.seqNumb >=1) = 1;
-        MT  = ANA;
         
-        MT = getrow(MT , MT.MT <= 9000 );
+        ANA = getrow(ANA , ANA.MT <= 9000 );
         
         for d = 1:length(dayz)
-            MT.Day(ismember(MT.Day , dayz{d})) = d;
+            ANA.Day(ismember(ANA.Day , dayz{d})) = d;
         end
-        MT = tapply(MT , {'Day' , 'seqNumb' , 'SN'} , {'MT'});
+        MT = tapply(ANA , {'BN' , 'seqNumb' , 'SN' , 'Day'} , {'MT'});
         MT = normData(MT , {'MT'});
+        % segments
+        ANA = getrow(Dall , Dall.isgood & ~ismember(Dall.seqNumb , [0 1:6]) & ~Dall.isError);
+        ANA.seqNumb(ismember(ANA.seqNumb ,[102 202])) = 2;
+        ANA.seqNumb(ismember(ANA.seqNumb ,[103 203])) = 3;
+        ANA.seqNumb(ismember(ANA.seqNumb ,[104 204])) = 4;
+        
+        
+        ANA = getrow(ANA , ANA.MT <= 9000 );
+        
+        for d = 1:length(dayz)
+            ANA.Day(ismember(ANA.Day , dayz{d})) = d;
+        end
+        MTseg = tapply(ANA , {'BN' , 'seqNumb' , 'SN'} , {'MT'});
+        MTseg = normData(MTseg , {'MT'});
         
         switch nowWhat
             case 'RandvsStructCommpare'
                 figure('color' , 'white');
                 colorz = colz(3,1:2);
-                lineplot([MT.Day] , MT.normMT , 'plotfcn' , 'nanmean',...
+                lineplot([MT.BN] , MT.normMT , 'plotfcn' , 'nanmean',...
                             'split', MT.seqNumb , 'linecolor' , colorz,...
                             'errorcolor' , colorz , 'errorbars' , repmat({'shade'} , 1 , 2) , 'shadecolor' ,colorz,...
                             'linewidth' , 3 , 'markertype' , repmat({'o'} , 1  , 2) , 'markerfill' , colorz,...
-                            'markersize' , 10, 'markercolor' , colorz);
-                 set(gca,'FontSize' , 18 , 'XTick' , [1:length(dayz)] , ...
-                        'GridAlpha' , .2 , 'Box' , 'off' , 'YLim' , [3500 6000],'YTick' , [400:500:5500] ,...
+                            'markersize' , 10, 'markercolor' , colorz , 'leg' , {'Random'  , 'Structured'} );
+                 set(gca,'FontSize' , 18 , ...
+                        'GridAlpha' , .2 , 'Box' , 'off' , 'YLim' , [3500 6000],'YTick' , [4000:500:5500] ,...
                         'YTickLabels' , [4:.5:5.5] , 'YGrid' , 'on');     
-                 xlabel('Training Session')
+                 xlabel('Training Block')
+                 ylabel('Execution time [s]')
+                                  
+           case 'Segments'
+                figure('color' , 'white');
+                colorz = colIPI(3,1:3);
+                lineplot([MTseg.BN] , MTseg.normMT , 'plotfcn' , 'nanmean',...
+                            'split', MTseg.seqNumb , 'linecolor' , colorz,...
+                            'errorcolor' , colorz , 'errorbars' , repmat({'shade'} , 1 , 3) , 'shadecolor' ,colorz,...
+                            'linewidth' , 3 , 'markertype' , repmat({'o'} , 1  , 3) , 'markerfill' , colorz,...
+                            'markersize' , 10, 'markercolor' , colorz , 'leg' , {'Duoble'  , 'Triplet' , 'Quadruple'});
+                 set(gca,'FontSize' , 18 , ...
+                        'GridAlpha' , .2 , 'Box' , 'off' , 'YLim' , [100 1200],'YTick' , [200:200:1200] ,...
+                        'YTickLabels' , [0.2:.2:1.2] , 'YGrid' , 'on');     
+                 xlabel('Training Block')
                  ylabel('Execution time [s]')
         end
     case 'IPI'
-        structNumb = [1 2];
+        structNumb = [1:6];
         out = [];
         %         plotfcn = input('nanmean or nanmean?' , 's');
         %% IPIs vs horizon
         % this is the output of the case: 'transitions_All' that is saved to disc
-        calc = 1;
-        if ~ calc
-            load([baseDir , '/se2_TranProb.mat'] , 'All');
-            IPItable = All;
-            IPItable = getrow(IPItable , ismember(IPItable.Day , dayz{day}));
-        else
-            ANA = getrow(Dall , ismember(Dall.SN , subjnum) & Dall.isgood & ismember(Dall.seqNumb , [0 , structNumb])  & ~Dall.isError);
-            ANA.seqNumb(ANA.seqNumb==2) = 1;
-            for tn = 1:length(ANA.TN)
-                n = (ANA.AllPressIdx(tn , sum(~isnan(ANA.AllPressIdx(tn , :))))  - ANA.AllPressIdx(tn , 1)) / 1000;
-                nIdx(tn , :) = (ANA.AllPressIdx(tn , :) - ANA.AllPressIdx(tn , 1))/n;
-                ANA.IPI_norm(tn , :) = diff(nIdx(tn ,:) , 1 , 2);
+        
+        ANA = getrow(Dall , ismember(Dall.SN , subjnum) & Dall.isgood & ismember(Dall.seqNumb , [0 , structNumb])  & ~Dall.isError);
+        ANA.seqNumb(ANA.seqNumb>=2) = 1;
+        for tn = 1:length(ANA.TN)
+            n = (ANA.AllPressIdx(tn , sum(~isnan(ANA.AllPressIdx(tn , :))))  - ANA.AllPressIdx(tn , 1)) / 1000;
+            nIdx(tn , :) = (ANA.AllPressIdx(tn , :) - ANA.AllPressIdx(tn , 1))/n;
+            ANA.IPI_norm(tn , :) = diff(nIdx(tn ,:) , 1 , 2);
+            if ismember(ANA.seqNumb(tn) , [1:6])
+                ANA.ChunkBndry(tn , :) = [1 diff(ANA.ChnkArrang(tn,:))];
+                a = find(ANA.ChunkBndry(tn , :));
+                ANA.ChunkBndry(tn , a(2:end)-1) = 3;
+                ANA.ChunkBndry(tn ,end) = 3;
+                ANA.ChunkBndry(tn , ANA.ChunkBndry(tn , :) == 0) = 2;
+            else
+                ANA.ChunkBndry(tn , :) = zeros(size(ANA.ChnkArrang(tn , :)));
             end
-            for tn  = 1:length(ANA.TN)
-                ANA.IPI_Horizon(tn , :) = ANA.Horizon(tn)*ones(1,13);
-                ANA.IPI_SN(tn , :) = ANA.SN(tn)*ones(1,13);
-                ANA.IPI_Day(tn , :) = ANA.Day(tn)*ones(1,13);
-                ANA.IPI_prsnumb(tn , :) = [1 :13];
-                ANA.IPI_seqNumb(tn , :) = ANA.seqNumb(tn)*ones(1,13);
-            end
-            IPItable.IPI = reshape(ANA.IPI , numel(ANA.IPI) , 1);
-            IPItable.ChunkBndry = reshape(ANA.IPIarrangement , numel(ANA.IPI) , 1);
-            IPItable.Horizon = reshape(ANA.IPI_Horizon , numel(ANA.IPI) , 1);
-            IPItable.SN  = reshape(ANA.IPI_SN , numel(ANA.IPI) , 1);
-            IPItable.Day = reshape(ANA.IPI_Day , numel(ANA.IPI) , 1);
-            IPItable.prsnumb = reshape(ANA.IPI_prsnumb , numel(ANA.IPI) , 1);
-            IPItable.seqNumb = reshape(ANA.IPI_seqNumb , numel(ANA.IPI) , 1);
         end
+        for tn  = 1:length(ANA.TN)
+            ANA.IPI_Horizon(tn , :) = ANA.Horizon(tn)*ones(1,13);
+            ANA.IPI_SN(tn , :) = ANA.SN(tn)*ones(1,13);
+            ANA.IPI_Day(tn , :) = ANA.Day(tn)*ones(1,13);
+            ANA.IPI_prsnumb(tn , :) = [1 :13];
+            ANA.IPI_seqNumb(tn , :) = ANA.seqNumb(tn)*ones(1,13);
+            ANA.IPI_BN(tn , :) = ANA.BN(tn)*ones(1,13);
+        end
+        IPItable.IPI = reshape(ANA.IPI , numel(ANA.IPI) , 1);
+        IPItable.ChunkBndry = reshape(ANA.ChunkBndry(:,2:end) , numel(ANA.IPI) , 1);
+        IPItable.Horizon = reshape(ANA.IPI_Horizon , numel(ANA.IPI) , 1);
+        IPItable.SN  = reshape(ANA.IPI_SN , numel(ANA.IPI) , 1);
+        IPItable.Day = reshape(ANA.IPI_Day , numel(ANA.IPI) , 1);
+        IPItable.prsnumb = reshape(ANA.IPI_prsnumb , numel(ANA.IPI) , 1);
+        IPItable.seqNumb = reshape(ANA.IPI_seqNumb , numel(ANA.IPI) , 1);
+        IPItable.BN = reshape(ANA.IPI_BN , numel(ANA.IPI) , 1);
+        
         IPItable =  getrow(IPItable,ismember(IPItable.prsnumb , [4:10]));
-        IPItable  = tapply(IPItable , {'Horizon' , 'Day' ,'SN' , 'ChunkBndry'} , {'IPI' , 'nanmean(x)'});
-        
+        IPItable  = tapply(IPItable , {'BN' ,'SN' , 'ChunkBndry'} , {'IPI' , 'nanmean(x)'});
         IPItable = normData(IPItable , {'IPI'});
-        
-        
-        h0 = figure;
-        [x1 , plot1 , error1] = lineplot(IPItable.Horizon , IPItable.normIPI , 'subset' , IPItable.ChunkBndry == 1 ,'plotfcn' , 'nanmean');
-        hold on
-        [x2 , plot2 , error2] = lineplot(IPItable.Horizon , IPItable.normIPI , 'subset' , IPItable.ChunkBndry == 2 ,'plotfcn' , 'nanmean');
-        
-        close(h0)
-        ChunkedIPI  = pivottable(IPItable.Horizon, IPItable.ChunkBndry, IPItable.IPI ,'nanmean(x)' );
         switch nowWhat
-            case 'IPIFullDispHeat'
-                h0 = figure;
-                hold on
-                hc = 1;
-                horz = {[1] [2] [3] [4] [5:13]};
-                hlab = repmat({'1' , '2' , '3' , '4'  , '5 - 13'} , 1 , length(dayz));
-                horzcolor = linspace(0.2,.8 , length(unique(MT.Horizon)));
-                ipitable = IPItable;
-                ipitable.Horizon(ipitable.Horizon>5) = 5;
-                for h = 1:length(unique(ipitable.Horizon))
-                    for d = 1:length(dayz)
-                        for sn = 0:1
-                            [IPI_x{sn+1,d}(hc,:),IPI_plot{sn+1,d}(hc,:) , IPI_plot_error{sn+1,d}(hc,:)] = lineplot(ipitable.prsnumb ,ipitable.normIPI , 'subset' , ipitable.Horizon == h & ismember(ipitable.seqNumb , sn) & ...
-                                ismember(ipitable.Day , dayz{d}),'plotfcn' , 'nanmean');
-                            hold on
-                        end
-                    end
-                    hc = hc+1;
-                end
-                close(h0)
-                ttl = {'Random' ['Structures ' , num2str(structNumb)]};
-                figure('color' , 'white');
-                for d = 1:length(dayz)
-                    for sn = 0:1
-                        subplot(2,length(dayz),sn*length(dayz)+d)
-                        imagesc(IPI_plot{sn+1,d}, [100 600]);
-                        colorbar
-                        hold on
-                        title([ttl{sn+1} , ' IPIs - Day(s) ' , num2str(dayz{d})])
-                        xlabel('Press Number')
-                        set(gca,'FontSize' , 16, 'XTick' , [1:13] ,'YTick' , [1:5] , 'YTickLabel' ,...
-                            fliplr({'H = 5-13' 'H = 4' 'H = 3' 'H = 2' 'H = 1'}));
-                        axis square
-                    end
-                end
             case 'IPIFullDispShade'
+                figure('color' , 'white');
+                colorz = colIPI(3,1:4);
+                lineplot([IPItable.BN] , IPItable.normIPI , 'plotfcn' , 'nanmean',...
+                            'split', IPItable.seqNumb , 'linecolor' , colorz,...
+                            'errorcolor' , colorz , 'errorbars' , repmat({'shade'} , 1 , 3) , 'shadecolor' ,colorz,...
+                            'linewidth' , 3 , 'markertype' , repmat({'o'} , 1  , 3) , 'markerfill' , colorz,...
+                            'markersize' , 10, 'markercolor' , colorz , 'leg' , {'Random'  , 'First' , 'Middle' , 'Last'});
+                 set(gca,'FontSize' , 18 , ...
+                        'GridAlpha' , .2 , 'Box' , 'off' , 'YLim' , [100 1200],'YTick' , [200:200:1200] ,...
+                        'YTickLabels' , [0.2:.2:1.2] , 'YGrid' , 'on');     
+                 xlabel('Training Block')
+                 ylabel('Execution time [s]')
+                
+                
                 h0 = figure;
                 hold on
                 hc = 1;
@@ -1745,9 +1747,9 @@ switch what
     case 'Eye'
         calc = 1;
         if isSymmetric 
-            filename = 'se2_eyeInfo.mat';
+            filename = 'se1_eyeInfo.mat';
         else
-            filename = 'se2_eyeInfo_asym.mat';
+            filename = 'se1_eyeInfo_asym.mat';
         end
         if calc
             eyeinfo.PB         = [];   % preview benefit

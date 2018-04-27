@@ -25,11 +25,11 @@
 %
 %
 %   Asymmetric Example:
-%   y = randn(3,4);         % random y values (3 groups of 4 parameters)
-%   errY = zeros(3,4,2);
-%   errY(:,:,1) = 0.1.*y;   % 10% lower error
-%   errY(:,:,2) = 0.2.*y;   % 20% upper error
-%   barwitherr(errY, y);    % Plot with errorbars
+  y = randn(3,4);         % random y values (3 groups of 4 parameters)
+  errY = zeros(3,4,2);
+  errY(:,:,1) = 0.1.*y;   % 10% lower error
+  errY(:,:,2) = 0.2.*y;   % 20% upper error
+  barwitherr(errY, y);    % Plot with errorbars
 %
 %   set(gca,'XTickLabel',{'Group A','Group B','Group C'})
 %   legend('Parameter 1','Parameter 2','Parameter 3','Parameter 4')
