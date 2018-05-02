@@ -1,5 +1,5 @@
  %% plotting recipes
- 
+ Dall = Dall1;
 out  = se1_pubFigs(Dall , 'MT','RandvsStructCommpare'); 
 out  = se1_pubFigs(Dall , 'MT','Segments' , 'poolDays' , 0); 
 

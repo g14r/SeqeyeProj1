@@ -169,9 +169,7 @@ switch what
     case 'IPI'
         structNumb = [1:6];
         out = [];
-        %         plotfcn = input('nanmean or nanmean?' , 's');
-        %% IPIs vs horizon
-        % this is the output of the case: 'transitions_All' that is saved to disc
+
         
         ANA = getrow(Dall , ismember(Dall.SN , subjnum) & Dall.isgood & ismember(Dall.seqNumb , [0 , structNumb])  & ~Dall.isError);
         ANA.seqNumb(ANA.seqNumb>=2) = 1;
