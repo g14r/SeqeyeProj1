@@ -2,8 +2,9 @@ function Dout=se1_analyze (what , getdat , SubjCodes , Dall)
 
 prefix = 'se1_';
 
-baseDir = '/Users/nedakordjazi/Documents/SeqEye/SeqEye1/analyze';
+%baseDir = '/Users/nedakordjazi/Documents/SeqEye/SeqEye1/analyze';
 %baseDir = '/Users/nkordjazi/Documents/SeqEye/se1/SeqEye1/se1_data/analyze';
+baseDir = '/Volumes/motorcontrol/data/SeqEye1/SEp/data/analyze';  % server
 subj_name = {'SZ1','JN2' ,'SP1','AT1','DW1','KL1','JG1','GP1','SK1' ,'NM1', 'VR1', 'PB1'};
 load([baseDir , '/CMB.mat'])
 %load([baseDir , '/se1_all.mat'])

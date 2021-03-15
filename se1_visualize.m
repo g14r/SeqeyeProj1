@@ -1,4 +1,4 @@
-function out  = se1_visualize(Dall , subjnum, what, distance, calc , day , rep, GroupCode)
+function out  = se1_visualize(Dall, subjnum, what, distance, calc , day , rep, GroupCode)
 %%  distances:
 % 'euclidean'	      Euclidean distance (default).
 % 'squaredeuclidean'  Squared Euclidean distance. (This option is provided for efficiency only. It does not satisfy the triangle inequality.)
@@ -59,7 +59,9 @@ function out  = se1_visualize(Dall , subjnum, what, distance, calc , day , rep, 
 
 prefix = 'se1_';
 % baseDir = '/Users/nedakordjazi/Documents/SeqEye/SeqEye1/analyze';
-baseDir = '/Users/nkordjazi/Documents/SeqEye/SeqEye1/analyze';
+% baseDir = '/Users/nkordjazi/Documents/SeqEye/SeqEye1/analyze';
+baseDir = '/Volumes/motorcontrol/data/SeqEye1/SEp/data/analyze';  % server
+
 subj_name = {'SZ1','JN2' ,'SP1','AT1','DW1','KL1','JG1','GP1','SK1' ,'NM1','VR1','PB1' , 'XX1'};
 if subjnum == length(subj_name)
     %     subjnum = [1 3:length(subj_name)-1];
